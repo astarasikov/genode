@@ -1,0 +1,6 @@
+<config>
+	<start name="smash">
+		<resource name="RAM" quantum="256K"/>
+		<provides><service name="Hello"/></provides>
+	</start>
+</config>

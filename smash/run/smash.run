@@ -1,0 +1,40 @@
+#
+# Build
+#
+
+build { core init smash }
+
+create_boot_directory
+
+#
+# Generate config
+#
+
+install_config {
+<config>
+	<parent-provides>
+		<service name="ROM"/>
+		<service name="RAM"/>
+		<service name="CAP"/>
+		<service name="LOG"/>
+		<service name="RM"/>
+		<service name="IO_PORT"/>
+		<service name="IRQ"/>
+	</parent-provides>
+	<default-route>
+		<any-service> <parent/> <any-child/> </any-service>
+	</default-route>
+	<start name="smash">
+		<resource name="RAM" quantum="1M"/>
+	</start>
+</config>}
+
+#
+# Boot image
+#
+
+build_boot_image { core init smash }
+
+append qemu_args " -nographic "
+
+run_genode_until forever
