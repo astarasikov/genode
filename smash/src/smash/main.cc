@@ -1,20 +1,13 @@
-/*
- * \brief  Test client for the Hello RPC interface
- * \author Björn Döbel
- * \date   2008-03-20
- */
-
-/*
- * Copyright (C) 2008-2012 Genode Labs GmbH
- *
- * This file is part of the Genode OS framework, which is distributed
- * under the terms of the GNU General Public License version 2.
- */
-
+#if 1
 #include <base/env.h>
 #include <base/printf.h>
-
+#include <util/string.h>
 using namespace Genode;
+#else
+#define PDBG	printf
+#include <stdio.h>
+#include <string.h>
+#endif
 
 void hello_smash()
 {
@@ -31,8 +24,10 @@ class MyClass
         {
     	    test=0xa5;
     	    int i;
-    	    for(i=0;i<50;i++)
-    		    Buffer[i]=String[i];
+//	    strncpy(Buffer,String,40);
+//	    memcpy(Buffer,String,40);
+	    for(i=0;i<50;i++)
+		Buffer[i]=String[i];
         }
         void PrintBuffer()
         {

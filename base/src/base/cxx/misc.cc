@@ -196,7 +196,8 @@ extern "C" int sprintf(char *str, const char *format, ...)
  ** Support for stack protection **
  **********************************/
 
-extern "C" __attribute__((weak)) void __stack_chk_fail_local(void)
-{
-	PERR("Violated stack boundary");
-}
+//extern "C" __attribute__((weak)) void __stack_chk_fail_local(void)
+//{
+//	PERR("Violated stack boundary");
+//	sleep_forever();
+//}

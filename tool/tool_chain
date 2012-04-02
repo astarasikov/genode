@@ -44,6 +44,12 @@ MAKE_OPT ?= -j4
 GENODE_DIR ?= $(realpath $(dir $(MAKEFILE_LIST))/..)
 
 #
+# Hardened version of tool chain (expiremental)
+#
+
+STACK_PROTECT = 1
+
+#
 # Download locations
 #
 
@@ -226,6 +232,10 @@ GCC_CONFIG += $(COMMON_CONFIG) \
 
 GCC_CONFIG += $(GCC_CONFIG_$(PLATFORM))
 
+ifeq ($(STACK_PROTECT),1)
+	      GCC_CONFIG += --enable-stack-protector
+endif
+
 #
 # Configure options passed to gcc
 #
@@ -296,7 +306,8 @@ GCC_INSTALLED_BINARIES      = $(LOCAL_INSTALL_LOCATION)/bin/genode-$(PLATFORM)-g
 GDB_BINARIES                = build/$(PLATFORM)/gdb/gdb/gdb
 GDB_INSTALLED_BINARIES      = $(LOCAL_INSTALL_LOCATION)/bin/genode-$(PLATFORM)-gdb
 
-build_all: $(GCC_INSTALLED_BINARIES) $(GDB_INSTALLED_BINARIES)
+#build_all: $(GCC_INSTALLED_BINARIES) $(GDB_INSTALLED_BINARIES)
+build_all: $(GCC_INSTALLED_BINARIES) 
 
 $(DOWNLOAD_DIR):
 	$(VERBOSE)mkdir -p $@
