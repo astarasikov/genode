@@ -280,6 +280,8 @@ extern "C" void module_ehci_hcd_init();
 extern "C" int  module_usbnet_init();
 extern "C" int  module_smsc95xx_init();
 
+extern void panda_otg_init(Services *services);
+
 void platform_hcd_init(Services *services)
 {
 	/* register netowrk */
@@ -310,5 +312,7 @@ void platform_hcd_init(Services *services)
 	pdev->dev.coherent_dma_mask = ~0;
 
 	platform_device_register(pdev);
+	
+	panda_otg_init(services);
 }
 

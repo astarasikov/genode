@@ -137,6 +137,7 @@ typedef dde_kit_size_t   size_t;
 typedef dde_kit_int64_t  int64_t;
 typedef dde_kit_uint64_t uint64_t;
 
+typedef unsigned short ushort;
 typedef uint32_t      uint;
 typedef unsigned long ulong;
 
@@ -226,6 +227,8 @@ typedef unsigned long dma_addr_t;
  */
 typedef unsigned short mode_t;
 
+#define DECLARE_BITMAP(name,bits) \
+	unsigned long name[BITS_TO_LONGS(bits)]
 
 /******************
  ** asm/system.h **
@@ -267,6 +270,7 @@ static inline void barrier() { mb(); }
 #define __always_inline
 
 #undef __unused
+#define __deprecated
 
 
 /***********************
@@ -426,6 +430,8 @@ enum {
 	EOPNOTSUPP   = 48,
 	EDOM         = 49,
 	ENOLINK      = 50,
+	ERANGE		 = 51,
+	ECONNABORTED = 52,
 };
 
 static inline bool IS_ERR(void *ptr) {
@@ -647,7 +653,7 @@ char * strsep(char **,const char *);
 char *strstr(const char *, const char *);
 char  *kstrdup(const char *s, gfp_t gfp);
 void  *kmemdup(const void *src, size_t len, gfp_t gfp);
-
+extern bool sysfs_streq(const char *s1, const char *s2);
 
 /*****************
  ** linux/nls.h **
@@ -819,6 +825,7 @@ extern volatile unsigned long jiffies;
 unsigned long msecs_to_jiffies(const unsigned int m);
 long time_after(long a, long b);
 long time_after_eq(long a, long b);
+#define time_before(a,b) time_after(b,a)
 
 
 /*******************
@@ -1171,6 +1178,16 @@ int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...);
 char *kobject_name(const struct kobject *kobj);
 char *kobject_get_path(struct kobject *kobj, gfp_t gfp_mask);
 
+enum kobject_action {
+	KOBJ_ADD,
+	KOBJ_REMOVE,
+	KOBJ_CHANGE,
+	KOBJ_MOVE,
+	KOBJ_ONLINE,
+	KOBJ_OFFLINE,
+	KOBJ_MAX
+};
+extern int kobject_uevent(struct kobject *kobj, enum kobject_action action);
 
 /*******************
  ** linux/sysfs.h **
@@ -1233,6 +1250,9 @@ void pm_runtime_put_noidle(struct device *dev);
 void pm_runtime_use_autosuspend(struct device *dev);
 int  pm_runtime_put_sync_autosuspend(struct device *dev);
 void pm_runtime_no_callbacks(struct device *dev);
+int pm_runtime_get_sync(struct device *dev);
+inline int pm_runtime_put(struct device *dev);
+void pm_runtime_set_autosuspend_delay(struct device *dev, int delay);
 
 
 /***********************
@@ -1266,6 +1286,8 @@ bool device_can_wakeup(struct device *dev);
 #else
 #define dev_dbg( dev, format, arg...)
 #endif
+
+#define dev_vdbg dev_dbg
 
 #define dev_printk(level, dev, format, arg...) \
 	dde_kit_printf("dev_printk: " format, ## arg)
@@ -1308,6 +1330,7 @@ struct class
 {
 	const char *name;
 	char *(*devnode)(struct device *dev, mode_t *mode);
+	int (*dev_uevent)(struct device *dev, struct kobj_uevent_env *env);
 };
 
 /* DEVICE */
@@ -1433,8 +1456,12 @@ void class_destroy(struct class *cls);
  *****************************/
 
 struct platform_device;
+struct platform_driver;
 void *platform_get_drvdata(const struct platform_device *pdev);
-
+extern struct bus_type platform_bus_type;
+extern struct resource *platform_get_resource(struct platform_device *, unsigned int, unsigned int);
+extern int platform_driver_probe(struct platform_driver *driver,
+		int (*probe)(struct platform_device *));
 
 /*********************
  ** linux/dmapool.h **
@@ -1894,6 +1921,8 @@ int request_irq(unsigned int irq, irq_handler_t handler, unsigned long flags,
                 const char *name, void *dev);
 void free_irq(unsigned int, void *);
 
+int disable_irq_wake(unsigned int irq);
+int enable_irq_wake(unsigned int irq);
 
 /*********************
  ** linux/hardirq.h **
@@ -2734,12 +2763,13 @@ struct ifreq { };
  **********************/
 
 enum {
+	ETH_FCS_LEN = 4,	  /* octets in the FCS */
 	ETH_ALEN    = 6,      /* octets in one ethernet addr */
+	ETH_HLEN	= 14,	  /* total octets in header */
 	ETH_P_8021Q = 0x8100, /* 802.1Q VLAN Extended Header  */
 
 	ETH_FRAME_LEN = 1514,
 };
-
 
 /*********************
  ** linux/ethtool.h **
@@ -2821,7 +2851,12 @@ u32 ethtool_op_get_link(struct net_device *);
 #define SET_NETDEV_DEV(net, pdev)        ((net)->dev.parent = (pdev))
 #define SET_NETDEV_DEVTYPE(net, devtype) ((net)->dev.type = (devtype))
 
-enum netdev_tx { NETDEV_TX_OK = 0 };
+enum netdev_tx {
+	NETDEV_TX_OK	 = 0x00,	/* driver took care of packet */
+	NETDEV_TX_BUSY	 = 0x10,	/* driver tx path was busy*/
+	NETDEV_TX_LOCKED = 0x20,	/* driver tx lock was already taken */
+
+};
 typedef enum netdev_tx netdev_tx_t;
 
 enum {
@@ -3003,6 +3038,11 @@ struct net_device *alloc_etherdev(int);
 
 __wsum csum_partial(const void *, int, __wsum);
 __sum16 csum_fold(__wsum);
+
+/********************
+ ** linux/prefetch.h **
+ ********************/
+#define prefetch(x) do {} while (0)
 
 /**********************************
  ** Platform specific defintions **

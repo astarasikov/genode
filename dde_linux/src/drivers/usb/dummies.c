@@ -302,7 +302,9 @@ void pm_runtime_put_noidle(struct device *dev) { TRACE; }
 void pm_runtime_use_autosuspend(struct device *dev) { TRACE; }
 int  pm_runtime_put_sync_autosuspend(struct device *dev) { TRACE; return 0; }
 void pm_runtime_no_callbacks(struct device *dev) { TRACE; }
-
+int pm_runtime_get_sync(struct device *dev) { TRACE; return 0; }
+inline int pm_runtime_put(struct device *dev) { TRACE; return 0; }
+void pm_runtime_set_autosuspend_delay(struct device *dev, int delay) { TRACE; }
 
 /***********************
  ** linux/pm_wakeup.h **
@@ -383,7 +385,10 @@ void class_destroy(struct class *cls) { TRACE; }
  *****************************/
 
 void *platform_get_drvdata(const struct platform_device *pdev) { TRACE; return NULL; }
-
+struct resource *platform_get_resource(struct platform_device *dev,
+	unsigned int u0, unsigned int u1) { TRACE; return 0; }
+int platform_driver_probe(struct platform_driver *driver,
+	int (*probe)(struct platform_device *)) { TRACE; return 0; }
 
 /********************
  ** linux/dcache.h **
@@ -550,6 +555,10 @@ struct resource *request_mem_region(resource_size_t start, resource_size_t n,
 void local_irq_enable(void) { TRACE; }
 void local_irq_disable(void) { TRACE; }
 void free_irq(unsigned int i, void *p) { TRACE; }
+
+int disable_irq_wake(unsigned int irq) { TRACE; return 0; }
+int enable_irq_wake(unsigned int irq) { TRACE; return 0; }
+
 
 
 /*********************

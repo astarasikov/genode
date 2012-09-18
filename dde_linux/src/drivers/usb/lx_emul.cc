@@ -355,6 +355,12 @@ int  kref_put(struct kref *kref, void (*release) (struct kref *kref))
 	return 0;
 }
 
+/*********************
+ ** linux/kobject.h **
+ *********************/
+int kobject_uevent(struct kobject *kobj, enum kobject_action action) {
+	TRACE; return 0;
+}
 
 /*********************
  ** linux/uaccess.h **
@@ -423,6 +429,7 @@ int scnprintf(char *buf, size_t size, const char *fmt, ...)
 int    strcmp(const char *s1, const char *s2) { return Genode::strcmp(s1, s2); }
 size_t strlen(const char *s) { return Genode::strlen(s); }
 
+char  *strcpy(char *to, const char *from) { return Genode::strncpy(to, from, strlen(from)); }
 
 size_t strlcat(char *dest, const char *src, size_t n)
 {
@@ -456,6 +463,10 @@ void *memscan(void *addr, int c, size_t size)
 	return (void *)p;
 }
 
+bool sysfs_streq(const char *s1, const char *s2)
+{
+	return strcmp(s1, s2) == 0;
+}
 
 /******************
  ** linux/log2.h **

@@ -69,6 +69,18 @@ struct ehci_hcd_omap_platform_data
 
 struct regulator;
 
+struct omap_musb_board_data {
+	u8	interface_type;
+	u8	mode;
+	u16	power;
+	unsigned extvbus:1;
+	void	(*set_phy_power)(u8 on);
+	void	(*clear_irq)(void);
+	void	(*set_mode)(u8 mode);
+	void	(*reset)(void);
+};
+
+enum musb_interface    {MUSB_INTERFACE_ULPI, MUSB_INTERFACE_UTMI};
 
 /*****************************
  ** linux/platform_device.h **
@@ -116,6 +128,22 @@ static inline void __raw_writeb(u8 b, volatile void __iomem *addr)
 	*(volatile u8 __force *) addr = b;
 }
 
+#define __raw_readw __raw_readl
+#define __raw_writew __raw_writel
+
+static inline void writesw(void __iomem *dst, const u8 *src, u16 len) {
+	memcpy(dst, src, len);
+}
+
+#define writesb writesw
+#define writesl writesw
+
+static inline void readsw(void __iomem *src, u8 *dst, u16 len) {
+	memcpy(dst, src, len);
+}
+
+#define readsb readsw
+#define readsl readsw
 
 /********************************
  ** linux/regulator/consumer.h **
