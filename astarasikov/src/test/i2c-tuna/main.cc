@@ -62,9 +62,9 @@ int main()
 		_w(RGB_REG_RED, color & RGB_LED_RED ? 0xff : 0);
 		_w(RGB_REG_GREEN, color & RGB_LED_GREEN ? 0xff : 0);
 		_w(RGB_REG_BLUE, color & RGB_LED_BLUE ? 0xff : 0);
-		timer.msleep(200);
+		timer.msleep(400);
 
-		//color++;
+		color++;
 	}
 
 	PINF("I2C Test: done");
