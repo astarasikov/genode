@@ -33,7 +33,7 @@ extern "C" {
 
 #include <linux/usb/storage.h>
 
-#define VERBOSE_LX_EMUL  0
+#define VERBOSE_LX_EMUL  1
 
 
 #if VERBOSE_LX_EMUL
@@ -48,14 +48,14 @@ extern "C" {
 #define DEBUG_TIMER      0
 #define DEBUG_THREAD     0
 #else
-#define DEBUG_COMPLETION 0
-#define DEBUG_DRIVER     0
-#define DEBUG_DMA        0
+#define DEBUG_COMPLETION 1
+#define DEBUG_DRIVER     1
+#define DEBUG_DMA        1
 #define DEBUG_IRQ        0
 #define DEBUG_KREF       0
 #define DEBUG_PCI        0
 #define DEBUG_SKB        0
-#define DEBUG_SLAB       0
+#define DEBUG_SLAB       1
 #define DEBUG_TIMER      0
 #define DEBUG_THREAD     0
 #endif
@@ -823,6 +823,7 @@ void up_write(struct rw_semaphore *sem);
  */
 extern volatile unsigned long jiffies;
 unsigned long msecs_to_jiffies(const unsigned int m);
+unsigned int jiffies_to_msecs(const unsigned long j);
 long time_after(long a, long b);
 long time_after_eq(long a, long b);
 #define time_before(a,b) time_after(b,a)
@@ -1459,9 +1460,8 @@ struct platform_device;
 struct platform_driver;
 void *platform_get_drvdata(const struct platform_device *pdev);
 extern struct bus_type platform_bus_type;
-extern struct resource *platform_get_resource(struct platform_device *, unsigned int, unsigned int);
-extern int platform_driver_probe(struct platform_driver *driver,
-		int (*probe)(struct platform_device *));
+extern int platform_driver_probe(struct platform_driver *drv,
+	int (*probe)(struct platform_device *));
 
 /*********************
  ** linux/dmapool.h **

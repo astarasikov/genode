@@ -88,14 +88,15 @@ SRC_CC  += platform.cc platform_otg.cc
 CC_OPT += -DCONFIG_ARM -DCONFIG_ARCH_OMAP4
 CC_OPT += -DCONFIG_USB_MUSB_HDRC=y -DCONFIG_USB_MUSB_OMAP2PLUS=y \
 	-DCONFIG_MUSB_PIO_ONLY=y \
-	-DCONFIG_USB_GADGET_MUSB_HDRC=y -DCONFIG_TWL6030_USB=y
+	-DCONFIG_USB_GADGET_MUSB_HDRC=y -DCONFIG_TWL6030_USB=y \
+	-DCONFIG_USB_GADGET_DUALSPEED=y
 SRC_C += $(addprefix usb/musb/, musb_core.c musb_gadget.c musb_gadget_ep0.c \
 	musb_host.c musb_virthub.c)
 
-#SRC_C += $(addprefix usb/musb/, omap2430.c);
+SRC_C += $(addprefix usb/musb/, omap2430.c)
 #SRC_C += $(addprefix usb/otg/, twl6030-usb.c)
 
-CC_OPT += -DCONFIG_USB_GADGET_VBUS_DRAW=0
+CC_OPT += -DCONFIG_USB_GADGET_VBUS_DRAW=0 -DCONFIG_USB_ETH=y
 SRC_C += $(addprefix usb/gadget/, ether.c udc-core.c)
 
 vpath %.c  $(PRG_DIR)/arm/platform

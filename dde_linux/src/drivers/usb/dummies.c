@@ -385,11 +385,6 @@ void class_destroy(struct class *cls) { TRACE; }
  *****************************/
 
 void *platform_get_drvdata(const struct platform_device *pdev) { TRACE; return NULL; }
-struct resource *platform_get_resource(struct platform_device *dev,
-	unsigned int u0, unsigned int u1) { TRACE; return 0; }
-int platform_driver_probe(struct platform_driver *driver,
-	int (*probe)(struct platform_device *)) { TRACE; return 0; }
-
 /********************
  ** linux/dcache.h **
  ********************/
