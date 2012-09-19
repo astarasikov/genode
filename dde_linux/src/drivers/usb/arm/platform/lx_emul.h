@@ -139,8 +139,13 @@ static inline void __raw_writeb(u8 b, volatile void __iomem *addr)
 	*(volatile u8 __force *) addr = b;
 }
 
-#define __raw_readw __raw_readl
-#define __raw_writew __raw_writel
+static inline u32 __raw_readw(const volatile void __iomem *addr) {
+	return *(const volatile u16 __force *) addr;
+}
+
+static inline void __raw_writew(u16 b, volatile void __iomem *addr) {
+	*(volatile u16 __force*) addr = b;
+}
 
 static inline void writesw(void __iomem *dst, const u8 *src, u16 len) {
 	memcpy(dst, src, len);
