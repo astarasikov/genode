@@ -35,7 +35,8 @@ extern "C" int module_twl6030_usb_init(void);
 extern "C" int module_omap2430_init(void);
 extern "C" int module_musb_init(void);
 
-#define OMAP2_OTG_BASE			(0x48000000 + 0xab000)
+#define OMAP44XX_L4_CORE_BASE 0x4a000000
+#define OMAP2_OTG_BASE			(OMAP44XX_L4_CORE_BASE + 0xab000)
 #define INT_24XX_USB_IRQ_OTG	80
 
 static int phy_init(struct device *dev) {
