@@ -209,3 +209,11 @@ int request_irq(unsigned int irq, irq_handler_t handler, unsigned long flags,
 	return 0;
 }
 
+int request_threaded_irq(unsigned int irq, irq_handler_t handler,
+	irq_handler_t thread_fn,
+	unsigned long flags, const char *name, void *dev)
+{
+	return request_irq(irq, thread_fn, flags, name, dev);
+}
+
+

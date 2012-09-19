@@ -263,6 +263,8 @@ int atomic_notifier_chain_register(struct atomic_notifier_head *nh,
 int atomic_notifier_chain_unregister(struct atomic_notifier_head *nh,
                                      struct notifier_block *nb) { TRACE; return 0; }
 
+int atomic_notifier_call_chain(struct atomic_notifier_head *nh,
+	unsigned long val, void *v) { TRACE; return 0; }
 
 
 /*********************
@@ -288,6 +290,10 @@ int fasync_helper(int fd, struct file * filp, int on, struct fasync_struct **fap
 ssize_t simple_read_from_buffer(void __user *to, size_t count,
                                 loff_t *ppos, const void *from, size_t available)  { TRACE; return 0; }
 
+void sysfs_notify(struct kobject *kobj, const char *dir, const char *attr) {
+	TRACE;
+}
+
 /************************
  ** linux/pm_runtime.h **
  ************************/
@@ -305,6 +311,8 @@ void pm_runtime_no_callbacks(struct device *dev) { TRACE; }
 int pm_runtime_get_sync(struct device *dev) { TRACE; return 0; }
 inline int pm_runtime_put(struct device *dev) { TRACE; return 0; }
 void pm_runtime_set_autosuspend_delay(struct device *dev, int delay) { TRACE; }
+void pm_runtime_mark_last_busy(struct device *dev) { TRACE; }
+int pm_runtime_put_autosuspend(struct device *dev) { TRACE; return 0; }
 
 /***********************
  ** linux/pm_wakeup.h **
@@ -385,6 +393,9 @@ void class_destroy(struct class *cls) { TRACE; }
  *****************************/
 
 void *platform_get_drvdata(const struct platform_device *pdev) { TRACE; return NULL; }
+int platform_get_irq(struct platform_device *pdev, unsigned int num)
+{ TRACE; return 0; }
+
 /********************
  ** linux/dcache.h **
  ********************/

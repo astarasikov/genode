@@ -180,3 +180,5 @@ int platform_device_add(struct platform_device *pdev)
 	printk("%s: %s\n", __func__, pdev->dev.name);
 	return platform_device_register(pdev);
 }
+
+

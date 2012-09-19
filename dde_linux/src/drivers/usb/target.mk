@@ -94,7 +94,10 @@ SRC_C += $(addprefix usb/musb/, musb_core.c musb_gadget.c musb_gadget_ep0.c \
 	musb_host.c musb_virthub.c)
 
 SRC_C += $(addprefix usb/musb/, omap2430.c)
-#SRC_C += $(addprefix usb/otg/, twl6030-usb.c)
+
+CC_OPT += -DCONFIG_USB_OTG_UTILS=y
+SRC_C += $(addprefix usb/otg/, twl6030-usb.c otg.c)
+SRC_CC += twl-i2c.cc
 
 CC_OPT += -DCONFIG_USB_GADGET_VBUS_DRAW=0 -DCONFIG_USB_ETH=y
 SRC_C += $(addprefix usb/gadget/, ether.c udc-core.c)
@@ -150,6 +153,7 @@ vpath %.cc $(PRG_DIR)/input
 vpath %.cc $(PRG_DIR)/storage
 vpath %.c  $(PRG_DIR)/storage
 vpath %.cc $(PRG_DIR)/nic
+vpath %.cc $(PRG_DIR)/i2c
 
 clean cleanall:
 	$(VERBOSE) rm -r include

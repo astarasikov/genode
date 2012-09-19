@@ -1105,12 +1105,19 @@ struct blocking_notifier_head {
 #define BLOCKING_NOTIFIER_HEAD(name) \
 	struct blocking_notifier_head name = BLOCKING_NOTIFIER_INIT(name)
 
+#define ATOMIC_INIT_NOTIFIER_HEAD(name) do {	\
+		spin_lock_init(&(name)->lock);	\
+		(name)->head = NULL;		\
+	} while (0)
+
 int blocking_notifier_chain_register(struct blocking_notifier_head *nh,
                                      struct notifier_block *nb);
 int blocking_notifier_chain_unregister(struct blocking_notifier_head *nh,
                                        struct notifier_block *nb);
 int blocking_notifier_call_chain(struct blocking_notifier_head *nh,
                                  unsigned long val, void *v);
+int atomic_notifier_call_chain(struct atomic_notifier_head *nh,
+	unsigned long val, void *v);
 int atomic_notifier_chain_register(struct atomic_notifier_head *nh,
                                    struct notifier_block *nb);
 int atomic_notifier_chain_unregister(struct atomic_notifier_head *nh,
@@ -1224,6 +1231,7 @@ int sysfs_create_group(struct kobject *kobj,
 void sysfs_remove_group(struct kobject *kobj,
                         const struct attribute_group *grp);
 
+void sysfs_notify(struct kobject *kobj, const char *dir, const char *attr);
 
 /****************
  ** linux/pm.h **
@@ -1254,7 +1262,8 @@ void pm_runtime_no_callbacks(struct device *dev);
 int pm_runtime_get_sync(struct device *dev);
 inline int pm_runtime_put(struct device *dev);
 void pm_runtime_set_autosuspend_delay(struct device *dev, int delay);
-
+void pm_runtime_mark_last_busy(struct device *dev);
+int pm_runtime_put_autosuspend(struct device *dev);
 
 /***********************
  ** linux/pm_wakeup.h **
@@ -1462,6 +1471,7 @@ void *platform_get_drvdata(const struct platform_device *pdev);
 extern struct bus_type platform_bus_type;
 extern int platform_driver_probe(struct platform_driver *drv,
 	int (*probe)(struct platform_device *));
+int platform_get_irq(struct platform_device *, unsigned int num);
 
 /*********************
  ** linux/dmapool.h **
@@ -1908,6 +1918,8 @@ resource_size_t resource_size(const struct resource *res);
 /***********************
  ** linux/interrupt.h **
  ***********************/
+#define IRQF_TRIGGER_RISING	0x00000001
+#define IRQF_TRIGGER_FALLING	0x00000002
 
 #define IRQF_SHARED   0x00000080
 #define IRQF_DISABLED 0x00000020
@@ -1920,6 +1932,9 @@ typedef irqreturn_t (*irq_handler_t)(int, void *);
 int request_irq(unsigned int irq, irq_handler_t handler, unsigned long flags,
                 const char *name, void *dev);
 void free_irq(unsigned int, void *);
+int request_threaded_irq(unsigned int irq, irq_handler_t handler,
+	irq_handler_t thread_fn,
+	unsigned long flags, const char *name, void *dev);
 
 int disable_irq_wake(unsigned int irq);
 int enable_irq_wake(unsigned int irq);
