@@ -22,6 +22,7 @@
 
 extern "C" {
 #include <linux/i2c/twl.h>
+#include <linux/mfd/twl6040.h>
 }
 
 static I2C::Connection *i2c;
@@ -102,31 +103,61 @@ static struct twl_mapping twl6030_map[] = {
 
 extern "C" {
 
+#define TWL_I2C_ADDR 0x48
+
 int twl_i2c_write_u8(u8 mod_no, u8 val, u8 reg) {
 	u8 offset = twl6030_map[mod_no].base;
-
-	PDBG("%s: offset=%x val=%x reg=%x", __func__, offset, val, reg);
-	i2c->write_byte(0x48, offset + reg, val);
+	int ret;
+	if ((ret = i2c->write_byte(TWL_I2C_ADDR, offset + reg, val)) < 0) {
+		PERR("%s: failed %d", __func__, ret);
+		return ret;
+	}
 	return 0;
 }
 
 int twl_i2c_read_u8(u8 mod_no, u8 *val, u8 reg) {
+	int ret;
 	u8 offset = twl6030_map[mod_no].base;
-	
-	i2c->read_byte(0x48, offset + reg, val);
-
-	PDBG("%s: offset=%x, *val=%x, reg=%x", __func__, offset, *val, reg);
-	
+	if ((ret = i2c->read_byte(TWL_I2C_ADDR, offset + reg, val)) < 0) {
+		PERR("%s: failed %d", __func__, ret);
+		return ret;
+	}
 	return 0;
 }
 
 int twl6030_interrupt_unmask(u8 bit_mask, u8 offset) {
+	int ret;
 	PDBG("%s: bit_mask=%x offset=%x", __func__, bit_mask, offset);
+
+	u8 tmp;
+	if ((ret = i2c->read_byte(TWL_I2C_ADDR, TWL6040_ALLINT_MSK, &tmp)) < 0) {
+		PERR("%s: failed %d", __func__, ret);
+		return ret;
+	}
+	PDBG("%s: %x -> %x", __func__, tmp, tmp & ~bit_mask);
+	tmp &= ~bit_mask;
+	if ((ret = i2c->write_byte(TWL_I2C_ADDR, TWL6040_ALLINT_MSK, tmp)) < 0) {
+		PERR("%s: failed %d", __func__, ret);
+		return ret;
+	}
 	return 0;
 }
 
 int twl6030_interrupt_mask(u8 bit_mask, u8 offset) {
+	int ret;
 	PDBG("%s: bit_mask=%x offset=%x", __func__, bit_mask, offset);
+
+	u8 tmp;
+	if ((ret = i2c->read_byte(TWL_I2C_ADDR, TWL6040_ALLINT_MSK, &tmp)) < 0) {
+		PERR("%s: failed %d", __func__, ret);
+		return ret;
+	}
+	PDBG("%s: %x -> %x", __func__, tmp, tmp | bit_mask);
+	tmp |= bit_mask;
+	if ((ret = i2c->write_byte(TWL_I2C_ADDR, TWL6040_ALLINT_MSK, tmp)) < 0) {
+		PERR("%s: failed %d", __func__, ret);
+		return ret;
+	}
 	return 0;
 }
 
@@ -137,6 +168,8 @@ void platform_i2c_init(Services *services) {
 
 	static I2C::Connection _i2c;
 	i2c = &_i2c;
-
 	static Timer::Connection timer;
+
+	i2c->write_byte(TWL_I2C_ADDR, TWL6040_REG_INTMR, 0xff);
+	i2c->write_byte(TWL_I2C_ADDR, TWL6040_REG_ACCCTL, TWL6040_INTCLRMODE);
 }

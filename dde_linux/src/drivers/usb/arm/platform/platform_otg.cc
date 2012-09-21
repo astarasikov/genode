@@ -25,6 +25,7 @@
 using namespace Genode;
 
 #define MUSB_MODE MUSB_PERIPHERAL
+//#define MUSB_MODE MUSB_OTG
 #define MUSB_POWER 100
 
 static struct omap_musb_board_data musb_board_data = {};
@@ -34,10 +35,13 @@ static struct musb_hdrc_platform_data musb_plat = {};
 extern "C" int module_twl6030_usb_init(void);
 extern "C" int module_omap2430_init(void);
 extern "C" int module_musb_init(void);
+extern "C" int module_gadget_ether_init(void);
+extern "C" int module_usb_udc_init(void);
+extern "C" int module_gadget_zero_init(void);
 
 #define OMAP44XX_L4_CORE_BASE 0x4a000000
 #define OMAP2_OTG_BASE			(OMAP44XX_L4_CORE_BASE + 0xab000)
-#define INT_24XX_USB_IRQ_OTG	80
+#define INT_24XX_USB_IRQ_OTG	124
 
 static int phy_init(struct device *dev) {
 	return 0;
@@ -134,4 +138,7 @@ void panda_otg_init(Services *services) {
 
 	PINF("%s: reigstering musb", __func__);
 	platform_device_register(pdev);
+	
+	//module_gadget_ether_init();
+	module_gadget_zero_init();
 }

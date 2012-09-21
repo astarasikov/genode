@@ -86,21 +86,32 @@ SRC_C   += platform_device.c usbnet.c smsc95xx.c
 SRC_CC  += platform.cc platform_otg.cc
 
 CC_OPT += -DCONFIG_ARM -DCONFIG_ARCH_OMAP4
-CC_OPT += -DCONFIG_USB_MUSB_HDRC=y -DCONFIG_USB_MUSB_OMAP2PLUS=y \
+CC_OPT += -DCONFIG_USB_MUSB_HDRC=y \
+	-DCONFIG_USB_MUSB_OMAP2PLUS=y \
 	-DCONFIG_MUSB_PIO_ONLY=y \
-	-DCONFIG_USB_GADGET_MUSB_HDRC=y -DCONFIG_TWL6030_USB=y \
+	-DCONFIG_MUSG_OTG=y \
+	-DCONFIG_USB_GADGET_MUSB_HDRC=y \
+	-DCONFIG_TWL6030_USB=y \
 	-DCONFIG_USB_GADGET_DUALSPEED=y
 SRC_C += $(addprefix usb/musb/, musb_core.c musb_gadget.c musb_gadget_ep0.c \
 	musb_host.c musb_virthub.c)
 
 SRC_C += $(addprefix usb/musb/, omap2430.c)
 
-CC_OPT += -DCONFIG_USB_OTG_UTILS=y
+CC_OPT += \
+	-DCONFIG_USB_OTG=y \
+	-DCONFIG_USB_OTG_UTILS=y
 SRC_C += $(addprefix usb/otg/, twl6030-usb.c otg.c)
 SRC_CC += twl-i2c.cc
 
-CC_OPT += -DCONFIG_USB_GADGET_VBUS_DRAW=0 -DCONFIG_USB_ETH=y
-SRC_C += $(addprefix usb/gadget/, ether.c udc-core.c)
+CC_OPT += \
+	-DCONFIG_USB_GADGET=y \
+	-DCONFIG_USB_GADGET_VBUS_DRAW=500 \
+	-DCONFIG_USB_GADGET_SELECTED=y \
+	-DOCNFIG_USB_GADGET_DUALSPEED=y \
+	-DCONFIG_USB_ETH=y
+#SRC_C += $(addprefix usb/gadget/, ether.c udc-core.c)
+SRC_C += $(addprefix usb/gadget/, zero.c udc-core.c)
 
 vpath %.c  $(PRG_DIR)/arm/platform
 vpath %.cc $(PRG_DIR)/arm/platform
