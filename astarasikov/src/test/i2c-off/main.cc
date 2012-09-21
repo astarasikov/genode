@@ -27,7 +27,7 @@ int main()
 	static Timer::Connection timer;
 
 	uint8_t tmp;
-	i2c.read_byte(0x48, 0x25, tmp);
+	i2c.read_byte(0x48, 0x25, &tmp);
 	i2c.write_byte(0x48, 0x25, tmp | 7);
 
 	PINF("I2C Test: done");
