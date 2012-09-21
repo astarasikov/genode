@@ -46,7 +46,7 @@ class I2C::Session_component : public Genode::Rpc_object<I2C::Session>
 
 
 		virtual bool read_byte(Genode::uint8_t address,
-			Genode::uint8_t reg, Genode::uint8_t &out)
+			Genode::uint8_t reg, Genode::uint8_t *out)
 		{
 			return _driver.read_byte(address, reg, out);
 		}

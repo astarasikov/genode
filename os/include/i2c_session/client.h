@@ -26,7 +26,7 @@ namespace I2C {
 		: Genode::Rpc_client<Session>(session) { }
 
 		bool read_byte(Genode::uint8_t address, Genode::uint8_t reg,
-			Genode::uint8_t &out)
+			Genode::uint8_t *out)
 		{
 			return call<Rpc_read_byte>(address, reg, out);
 		}

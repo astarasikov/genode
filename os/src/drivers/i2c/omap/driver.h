@@ -87,14 +87,12 @@ class I2C::Driver
 		}
 
 		bool read_byte(Genode::uint8_t address,	Genode::uint8_t reg,
-			Genode::uint8_t &out)
+			Genode::uint8_t *out)
 		{
-			uint8_t tmp;
-			if (_i2c->i2c_read_byte(address, reg, &tmp) < 0) {
+			if (_i2c->i2c_read_byte(address, reg, out) < 0) {
 				PERR("omap i2c: read_byte failed");
 				return false;
 			}
-			out = tmp;
 			return true;
 		}
 

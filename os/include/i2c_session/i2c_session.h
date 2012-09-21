@@ -35,7 +35,7 @@ namespace I2C {
 		 *
 		 */
 		virtual bool read_byte(Genode::uint8_t address,
-			Genode::uint8_t register, Genode::uint8_t &out) = 0;
+			Genode::uint8_t register, Genode::uint8_t *out) = 0;
 		
 		/**
 		 * Write a single byte to the device
@@ -54,7 +54,7 @@ namespace I2C {
 		 *********************/
 
 		GENODE_RPC(Rpc_read_byte, bool, read_byte,
-			Genode::uint8_t, Genode::uint8_t, Genode::uint8_t&);
+			Genode::uint8_t, Genode::uint8_t, Genode::uint8_t*);
 		GENODE_RPC(Rpc_write_byte, bool, write_byte,
 			Genode::uint8_t, Genode::uint8_t, Genode::uint8_t);
 
