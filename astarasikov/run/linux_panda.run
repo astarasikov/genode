@@ -65,7 +65,7 @@ set config  {
 		<config bus_number="1" />
 	</start>
 	<start name="usb_drv" priority="-1">
-		<resource name="RAM" quantum="10M"/>
+		<resource name="RAM" quantum="40M"/>
 		<provides>
 			<service name="Input"/>
 			<service name="Nic"/>
