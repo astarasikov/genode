@@ -1114,3 +1114,20 @@ int hex_to_bin(char ch)
 		return ch - 'a' + 10;
 	return -1;
 }
+
+/*****************
+ ** linux/notifier.h **
+ *****************/
+
+int atomic_notifier_call_chain(struct atomic_notifier_head *nh,
+	unsigned long val, void *v)
+
+{
+	if (!nh || !nh->head || !nh->head->notifier_call) {
+		PDBG("%s: no notifier callback", __func__);
+		return 0;
+	}
+	return nh->head->notifier_call(nh->head, val, v);
+}
+
+
