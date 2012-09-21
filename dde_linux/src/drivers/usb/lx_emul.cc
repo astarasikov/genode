@@ -426,6 +426,15 @@ int scnprintf(char *buf, size_t size, const char *fmt, ...)
 	return sc.len();
 }
 
+int sprintf(char *buf, const char *fmt, ...) {
+	int ret;
+	va_list args;
+	va_start(args, fmt);
+	ret = snprintf(buf, 1024, fmt, args);
+	va_end(args);
+	return ret;
+}
+
 int    strcmp(const char *s1, const char *s2) { return Genode::strcmp(s1, s2); }
 size_t strlen(const char *s) { return Genode::strlen(s); }
 
@@ -726,6 +735,10 @@ void put_unaligned_le32(u32 val, void *p)
 	ptr->x = val;
 }
 
+u32 get_unaligned_le32(const void *p) {
+	struct __una_u32 *ptr = (struct __una_u32 *)p;
+	return ptr->x;
+}
 
 u64 get_unaligned_le64(const void *p)
 {
@@ -733,13 +746,21 @@ u64 get_unaligned_le64(const void *p)
 	return ptr->x;
 }
 
-
 void put_unaligned_le64(u64 val, void *p)
 {
 	struct __una_u64 *ptr = (struct __una_u64 *)p;
 	ptr->x = val;
 }
 
+void put_unaligned_le16(u16 val, const void *p) {
+	struct __una_u16 *ptr = (struct __una_u16*)p;
+	ptr->x = val;
+}
+
+u16 get_unaligned_le16(const void *p) {
+	struct __una_u16 *ptr = (struct __una_u16*)p;
+	return ptr->x;
+}
 
 /**********************************
  ** linux/bitops.h, asm/bitops.h **
@@ -757,6 +778,15 @@ int fls(int x)
 	return 0;
 }
 
+void bitmap_zero(unsigned long *dst, int nbits)
+{
+	if (small_const_nbits(nbits))
+		*dst = 0UL;
+	else {
+		int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
+		memset(dst, 0, len);
+	}
+}
 
 /*******************
  ** linux/delay.h **
@@ -988,6 +1018,15 @@ int is_valid_ether_addr(const u8 *addr)
 	return 1;
 }
 
+int is_multicast_ether_addr(const u8 *addr)
+{
+	return 0x01 & addr[0];
+}
+
+int is_broadcast_ether_addr(const u8 *addr)
+{
+	return (addr[0] & addr[1] & addr[2] & addr[3] & addr[4] & addr[5]) == 0xff;
+}
 
 /*****************
  ** linux/mii.h **
@@ -1042,4 +1081,36 @@ u8 mii_resolve_flowctrl_fdx(u16 lcladv, u16 rmtadv)
 	 return cap;
 }
 
+/*****************
+ ** linux/netdevice.h **
+ *****************/
 
+int netif_carrier_ok(const struct net_device *dev)
+{
+	return !test_bit(__LINK_STATE_NOCARRIER, &dev->state);
+}
+
+/*****************
+ ** linux/ctype.h **
+ *****************/
+
+unsigned char tolower(unsigned char c)
+{
+	if (c >= 'A')
+		c -= 'A'-'a';
+	return c;
+}
+
+/*****************
+ ** linux/hexdump.h **
+ *****************/
+
+int hex_to_bin(char ch)
+{
+	if ((ch >= '0') && (ch <= '9'))
+		return ch - '0';
+	ch = tolower(ch);
+	if ((ch >= 'a') && (ch <= 'f'))
+		return ch - 'a' + 10;
+	return -1;
+}

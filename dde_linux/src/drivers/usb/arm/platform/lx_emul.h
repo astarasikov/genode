@@ -29,6 +29,7 @@ struct platform_device
 	struct device    dev;
 	u32              num_resources;
 	struct resource *resource;
+	const struct mfd_cell *mfd_cell;
 };
 
 

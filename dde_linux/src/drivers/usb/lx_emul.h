@@ -313,10 +313,12 @@ typedef enum irqreturn irqreturn_t;
 #define be32_to_cpup __be32_to_cpup
 
 
+struct __una_u16 { u16 x; } __attribute__((packed));
 struct __una_u32 { u32 x; } __attribute__((packed));
 struct __una_u64 { u64 x; } __attribute__((packed));
 
 u16 get_unaligned_le16(const void *p);
+void put_unaligned_le16(u16 val, const void *p);
 
 void put_unaligned_le32(u32 val, void *p);
 u32  get_unaligned_le32(const void *p);
@@ -553,6 +555,7 @@ int scnprintf(char *buf, size_t size, const char *fmt, ...);
 struct completion;
 void complete_and_exit(struct completion *, long);
 
+extern int hex_to_bin(char ch);
 /******************
  ** linux/log2.h **
  ******************/
@@ -629,6 +632,10 @@ long find_next_zero_bit_le(const void *addr,
 int ffs(int x);
 int fls(int x);
 
+/* bitmap.h */
+#define small_const_nbits(nbits) \
+	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
+void bitmap_zero(unsigned long *dst, int nbits);
 
 /********************
  ** linux/string.h **
@@ -1242,6 +1249,9 @@ typedef struct pm_message { int event; } pm_message_t;
 struct dev_pm_info { bool is_prepared; };
 
 #define PMSG_IS_AUTO(msg) 0
+
+#define PM_EVENT_SUSPEND	0x0002
+#define PMSG_SUSPEND	((struct pm_message){ .event = PM_EVENT_SUSPEND, })
 
 /************************
  ** linux/pm_runtime.h **
@@ -2966,9 +2976,22 @@ void unregister_netdev(struct net_device *);
 void free_netdev(struct net_device *);
 int netif_rx(struct sk_buff *);
 void netif_carrier_off(struct net_device *);
+int netif_carrier_ok(const struct net_device *dev);
+void netif_carrier_on(struct net_device *dev);
 
 int netdev_mc_empty(struct net_device *);
 int register_netdev(struct net_device *);
+
+#define SET_ETHTOOL_OPS(netdev,ops) \
+	( (netdev)->ethtool_ops = (ops) )
+
+enum netdev_state_t {
+	__LINK_STATE_START,
+	__LINK_STATE_PRESENT,
+	__LINK_STATE_NOCARRIER,
+	__LINK_STATE_LINKWATCH_PENDING,
+	__LINK_STATE_DORMANT,
+};
 
 /*****************
  ** linux/mii.h **
@@ -3046,6 +3069,9 @@ int is_valid_ether_addr(const u8 *);
 void random_ether_addr(u8 *addr);
 
 struct net_device *alloc_etherdev(int);
+
+int is_multicast_ether_addr(const u8 *addr);
+int is_broadcast_ether_addr(const u8 *addr);
 
 /********************
  ** asm/checksum.h **

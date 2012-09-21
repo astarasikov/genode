@@ -41,15 +41,6 @@
 
 int  atomic_inc_return(atomic_t *v) { TRACE; return 0; }
 
-
-/*******************************
- ** linux/byteorder/generic.h **
- *******************************/
-
-u16  get_unaligned_le16(const void *p) { TRACE; return 0; }
-u32  get_unaligned_le32(const void *p) { TRACE; return 0; }
-
-
 /*******************************
  ** linux/errno.h and friends **
  *******************************/
@@ -64,7 +55,6 @@ long PTR_ERR(const void *ptr) { TRACE; return 0; }
 void might_sleep() { SKIP; }
 char *kasprintf(gfp_t gfp, const char *fmt, ...) { TRACE; return NULL; }
 int kstrtouint(const char *s, unsigned int base, unsigned int *res) { TRACE; return 0; }
-int sprintf(char *buf, const char *fmt, ...) { TRACE; return 0; }
 int sscanf(const char *b, const char *s, ...) { TRACE; return 0; }
 int scnprintf(char *buf, size_t size, const char *fmt, ...);
 int strict_strtoul(const char *s, unsigned int base, unsigned long *res) { TRACE; return 0; }
@@ -850,6 +840,7 @@ void netif_device_attach(struct net_device *dev) { TRACE; }
 void unregister_netdev(struct net_device *dev) { TRACE; }
 void free_netdev(struct net_device *dev) { TRACE; }
 void netif_carrier_off(struct net_device *dev) { TRACE; }
+void netif_carrier_on(struct net_device *dev) { TRACE; }
 
 int netdev_mc_empty(struct net_device *dev) { TRACE; return 1; }
 
