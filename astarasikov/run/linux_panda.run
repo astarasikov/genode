@@ -8,6 +8,7 @@ build {
 	core
 	init
 	drivers/gpio
+	drivers/i2c
 	drivers/timer
 	drivers/framebuffer
 	drivers/sd_card
@@ -57,6 +58,12 @@ set config  {
 		<resource name="RAM" quantum="4M"/>
 		<provides><service name="Block"/></provides>
 	</start>
+	<start name="omap4_i2c1">
+		<binary name="omap_i2c_drv" />
+		<resource name="RAM" quantum="1M" />
+		<provides><service name="I2C"/></provides>
+		<config bus_number="1" />
+	</start>
 	<start name="usb_drv" priority="-1">
 		<resource name="RAM" quantum="10M"/>
 		<provides>
@@ -67,6 +74,7 @@ set config  {
 			<hid/>
 			<nic mac="2e:60:90:0c:4e:01" />
 		</config>
+		<service name="I2C"> <child name="omap4_i2c1" /> </service>
 	</start>
 	<!--<start name="part_blk">
 		<resource name="RAM" quantum="2M"/>
@@ -116,6 +124,7 @@ set boot_modules {
 	part_blk
 	l4linux
 	initrd.gz
+	omap_i2c_drv
 	omap4_gpio_drv
 	omap4_fb_drv
 	sd_card_drv

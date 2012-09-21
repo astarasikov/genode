@@ -56,6 +56,9 @@ static void init(Services *services)
 	/* start jiffies */
 	dde_kit_timer_init(0, 0);
 
+	//FIXME: add otg, i2c to config and split dde_kit to multiple drivers
+	platform_i2c_init(services);
+
 	/* USB */
 	subsys_usb_init();
 

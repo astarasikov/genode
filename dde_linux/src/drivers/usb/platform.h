@@ -26,5 +26,6 @@ struct Services
 };
 
 void platform_hcd_init(Services *services);
+void platform_i2c_init(Services *services);
 
 #endif /* _PLATFORM_H_ */
