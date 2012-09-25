@@ -15,6 +15,7 @@
 #include <platform/platform.h>
 
 #include <io_mem_session/connection.h>
+#include <util/mmio.h>
 
 #include <base/printf.h>
 #include <lx_emul.h>
@@ -43,23 +44,81 @@ extern "C" int module_gadget_zero_init(void);
 #define OMAP2_OTG_BASE			(OMAP44XX_L4_CORE_BASE + 0xab000)
 #define INT_24XX_USB_IRQ_OTG	124
 
+#define SCM_BASE 0x4a002000
+
+struct Phy : Genode::Mmio {
+	Phy(addr_t const mmio_base) : Mmio(mmio_base) {}
+	
+	struct DevConf : Register<0x300, 32> {
+		enum {
+			PowerDown = 1,
+			PowerUp = ~1,
+		};
+	};
+	struct Control : Register<0x33c, 32> {
+		struct AValid : Bitfield<0, 1> {};
+		struct BValid : Bitfield<1, 1> {};
+		struct VBusValid : Bitfield<2, 1> {};
+		struct SessionEnd : Bitfield<3, 1> {};
+		struct IdDig : Bitfield<4, 1> {};
+	};
+
+	void init() {
+		write<Phy::DevConf>(Phy::DevConf::PowerUp);
+	}
+
+	void power(int id, int on) {
+		id = on = 1;
+
+		if (!on) {
+			write<Phy::Control::SessionEnd>(1);
+			write<Phy::Control::IdDig>(1);
+			return;
+		}
+
+		write<Phy::Control::AValid>(1);
+		write<Phy::Control::VBusValid>(1);
+		if (id) {
+			write<Phy::Control::IdDig>(1);
+		}
+	}
+
+	void suspend(int suspend) {
+		if (suspend) {
+			write<Phy::DevConf>(Phy::DevConf::PowerDown);
+		}
+		else {
+			write<Phy::DevConf>(Phy::DevConf::PowerUp);
+		}
+	}
+};
+static Phy *phy;
+
 static int phy_init(struct device *dev) {
+	PDBG("+%s()", __func__);
+	phy->init();
 	return 0;
 }
 
 static int phy_exit(struct device *dev) {
+	PDBG("+%s()", __func__);
 	return 0;
 }
 
 static int phy_power(struct device *dev, int id, int on) {
+	PDBG("+%s(id=%d on=%d)", __func__, id, on);
+	phy->power(id, on);
 	return 0;
 }
 
 static int phy_set_clock(struct device *dev, int on) {
+	PDBG("+%s(on=%d)", __func__, on);
 	return 0;
 }
 
 static int phy_suspend(struct device *dev, int suspend) {
+	PDBG("+%s(suspend=%d)", __func__, suspend);
+	phy->suspend(suspend);
 	return 0;
 }
 
@@ -94,6 +153,11 @@ void panda_otg_init(Services *services) {
 	platform_device *pdev = NULL;
 	PINF("%s: initializing otg modules", __func__);
 
+	static Io_mem_connection io_scm(SCM_BASE, 0x1000);
+	addr_t scm_base = (addr_t)env()->rm_session()->attach(io_scm.dataspace());
+	static Phy _phy(scm_base);
+	phy = &_phy;
+
 	init_twl6030_usb();
 	module_musb_init();
 	module_omap2430_init();
@@ -112,7 +176,8 @@ void panda_otg_init(Services *services) {
 	otg_resources[1].flags = IORESOURCE_IRQ;
 	otg_resources[1].name = "mc";
 
-	musb_board_data.interface_type = MUSB_INTERFACE_ULPI;
+	musb_board_data.interface_type = MUSB_INTERFACE_UTMI;
+	//musb_board_data.interface_type = MUSB_INTERFACE_ULPI;
 	musb_board_data.mode = MUSB_MODE;
 	musb_board_data.power = MUSB_POWER;
 
