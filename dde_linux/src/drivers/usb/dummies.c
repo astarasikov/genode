@@ -58,8 +58,6 @@ int kstrtouint(const char *s, unsigned int base, unsigned int *res) { TRACE; ret
 int sscanf(const char *b, const char *s, ...) { TRACE; return 0; }
 int scnprintf(char *buf, size_t size, const char *fmt, ...);
 int strict_strtoul(const char *s, unsigned int base, unsigned long *res) { TRACE; return 0; }
-long simple_strtoul(const char *cp, char **endp, unsigned int base) { TRACE; return 0; }
-
 
 /******************
  ** linux/log2.h **
@@ -248,29 +246,6 @@ int blocking_notifier_chain_unregister(struct blocking_notifier_head *nh,
                                        struct notifier_block *nb) { TRACE; return 0; }
 int blocking_notifier_call_chain(struct blocking_notifier_head *nh,
                                  unsigned long val, void *v) { TRACE; return 0; }
-
-int atomic_notifier_chain_register(struct atomic_notifier_head *nh,
-	struct notifier_block *nb)
-{
-	TRACE;
-	
-	if (!nh) {
-		printk("%s: notifier head is NULL\n", __func__);
-		return 0;
-	}
-
-	if (!nb) {
-		printk("%s: notifier block is NULL\n", __func__);
-		return 0;
-	}
-
-	nh->head = nb;
-
-	return 0;
-}
-int atomic_notifier_chain_unregister(struct atomic_notifier_head *nh,
-                                     struct notifier_block *nb) { TRACE; return 0; }
-
 /*********************
  ** linux/kobject.h **
  *********************/

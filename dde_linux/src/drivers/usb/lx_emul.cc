@@ -477,6 +477,62 @@ bool sysfs_streq(const char *s1, const char *s2)
 	return strcmp(s1, s2) == 0;
 }
 
+int _isxdigit(char c) {
+	int isNum = c >= '0' && c <= '9';
+	int isHex = c >= 'a' && c <= 'f';
+	int isHexUc = c >= 'A' && c <= 'F';
+	return isNum || isHex || isHexUc;
+}
+
+int _isdigit(char c) {
+	return c >= '0' && c <= '9';
+}
+
+int _isupper(char c) {
+	return c >= 'A' && c <= 'Z';
+}
+
+int _islower(char c) {
+	return c >= 'a' && c <= 'z';
+}
+
+char _toupper(char c) {
+	if (_islower(c)) {
+		return (c - 'a') + 'A';
+	}
+	return c;
+}
+
+//ported from u-boot library
+long simple_strtoul(const char *cp, char **endp, unsigned int base)
+{
+	unsigned long result = 0, value;
+
+	if (*cp == '0') {
+		cp++;
+		if ((*cp == 'x') && _isxdigit(cp[1])) {
+			base = 16;
+			cp++;
+		}
+		if (!base) {
+			base = 8;
+		}
+	}
+	if (!base) {
+		base = 10;
+	}
+	while (_isxdigit(*cp)
+	       && (value = _isdigit(*cp) ? *cp - '0' : (_islower(*cp)
+						       ? _toupper(*cp) : *cp) -
+		   'A' + 10) < base) {
+		result = result * base + value;
+		cp++;
+	}
+	if (endp)
+		*endp = (char *)cp;
+	return result;
+}
+
 /******************
  ** linux/log2.h **
  ******************/
@@ -1128,6 +1184,32 @@ int atomic_notifier_call_chain(struct atomic_notifier_head *nh,
 		return 0;
 	}
 	return nh->head->notifier_call(nh->head, val, v);
+}
+
+int atomic_notifier_chain_register(struct atomic_notifier_head *nh,
+	struct notifier_block *nb)
+{
+	if (!nh) {
+		printk("%s: notifier head is NULL\n", __func__);
+		return 0;
+	}
+
+	if (!nb) {
+		printk("%s: notifier block is NULL\n", __func__);
+		return 0;
+	}
+
+	nh->head = nb;
+
+	return 0;
+}
+int atomic_notifier_chain_unregister(struct atomic_notifier_head *nh,
+	struct notifier_block *nb)
+{
+	if (nh && nh->head == nb) {
+		nh->head = 0;
+	}
+	return 0;
 }
 
 
