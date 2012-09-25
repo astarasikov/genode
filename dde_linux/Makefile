@@ -60,21 +60,21 @@ CONTENT += include/linux/input/mt.h
 CONTENT_USB_GADGET := gadget_chips.h f_loopback.c usbstring.c composite.c \
 	epautoconf.c f_subset.c config.c zero.c g_zero.h f_ecm.c \
 	u_ether.c ether.c udc-core.c u_ether.h f_eem.c f_sourcesink.c
-CONTENT_USB_GADGET_H := gadget.h usbnet.h composite.h
-CONTENT += $(addprefix drivers/usb/gadget/,$(CONTENT_USB_GADGET)) \
-	$(addprefix include/linux/usb/,$(CONTENT_USB_GADGET_H))
+CONTENT_INCLUDE_USB_GADGET := gadget.h usbnet.h composite.h
+CONTENT += $(addprefix drivers/usb/gadget/,$(CONTENT_USB_GADGET))
+CONTENT += $(addprefix include/linux/usb/,$(CONTENT_INCLUDE_USB_GADGET))
 
 CONTENT_USB_OTG := otg.c
-CONTENT += $(addprefix drivers/usb/otg/,$(CONTENT_USB_OTG)) \
-	include/linux/usb/otg.h
+CONTENT += $(addprefix drivers/usb/otg/,$(CONTENT_USB_OTG))
+CONTENT += $(addprefix include/linux/usb/,otg.h)
 
 # Mentor Graphics USB driver
 CONTENT_USB_MUSB := musb_dma.h musb_gadget.c musb_host.h musb_gadget.h \
 	musb_host.c musb_core.c musb_debug.h musb_core.h musb_virthub.c \
-	musbhsdma.c musb_regs.h musb_gadget_ep0.c musb_io.h musb_debugfs.c
+	musbhsdma.c musb_regs.h musb_gadget_ep0.c musb_io.h musb_debugfs.c \
 	musbhsdma.h
 CONTENT += $(addprefix drivers/usb/musb/,$(CONTENT_USB_MUSB)) \
-	include/linux/musb.h
+	include/linux/usb/musb.h
 
 CONTENT_USB_OMAP4 := drivers/usb/otg/twl6030-usb.c \
 	drivers/usb/musb/omap2430.c drivers/usb/musb/omap2430.h \
