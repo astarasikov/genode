@@ -652,7 +652,7 @@ int    strncmp(const char *cs, const char *ct, size_t count);
 char  *strcpy(char *to, const char *from);
 char  *strncpy(char *, const char *, size_t);
 char  *strchr(const char *, int);
-char  *strrchr(const char *,int);
+const char  *strrchr(const char *,int);
 size_t strlcat(char *dest, const char *src, size_t n);
 size_t strlcpy(char *dest, const char *src, size_t size);
 size_t strlen(const char *);

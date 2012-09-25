@@ -477,6 +477,17 @@ bool sysfs_streq(const char *s1, const char *s2)
 	return strcmp(s1, s2) == 0;
 }
 
+const char *strrchr(const char *s, int n) {
+	const char *last = NULL;
+	while (s && *s) {
+		if (*s == n) {
+			last = s;
+		}
+		s++;
+	}
+	return last;
+}
+
 int _isxdigit(char c) {
 	int isNum = c >= '0' && c <= '9';
 	int isHex = c >= 'a' && c <= 'f';
