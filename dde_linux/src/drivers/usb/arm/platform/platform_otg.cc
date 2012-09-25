@@ -68,19 +68,11 @@ struct Phy : Genode::Mmio {
 	}
 
 	void power(int id, int on) {
-		id = on = 1;
+		write<Phy::Control::SessionEnd>(!on);
+		write<Phy::Control::IdDig>(!on || id);
 
-		if (!on) {
-			write<Phy::Control::SessionEnd>(1);
-			write<Phy::Control::IdDig>(1);
-			return;
-		}
-
-		write<Phy::Control::AValid>(1);
-		write<Phy::Control::VBusValid>(1);
-		if (id) {
-			write<Phy::Control::IdDig>(1);
-		}
+		write<Phy::Control::AValid>(on);
+		write<Phy::Control::VBusValid>(on);
 	}
 
 	void suspend(int suspend) {
