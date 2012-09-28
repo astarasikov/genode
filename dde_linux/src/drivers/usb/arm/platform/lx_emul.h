@@ -140,7 +140,7 @@ static inline void __raw_writeb(u8 b, volatile void __iomem *addr)
 	*(volatile u8 __force *) addr = b;
 }
 
-static inline u32 __raw_readw(const volatile void __iomem *addr) {
+static inline u16 __raw_readw(const volatile void __iomem *addr) {
 	return *(const volatile u16 __force *) addr;
 }
 
