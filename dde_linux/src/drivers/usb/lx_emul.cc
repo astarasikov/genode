@@ -272,6 +272,55 @@ void mutex_init  (struct mutex *m) { if (m->lock) dde_kit_lock_init  (&m->lock);
 void mutex_lock  (struct mutex *m) { if (m->lock) dde_kit_lock_lock  ( m->lock); }
 void mutex_unlock(struct mutex *m) { if (m->lock) dde_kit_lock_unlock( m->lock); }
 
+/**********************
+ ** linux/spinlock.h **
+ **********************/
+
+void spin_lock(spinlock_t * lock)
+{
+	mutex_lock(lock);
+}
+
+void spin_lock_nested(spinlock_t * lock, int subclass)
+{
+	mutex_lock_nested(lock, subclass);
+}
+
+void spin_unlock(spinlock_t * lock)
+{
+	mutex_unlock(lock);
+}
+
+void spin_lock_init(spinlock_t * lock)
+{
+	mutex_init(lock);
+}
+
+void spin_lock_irqsave(spinlock_t * lock, unsigned long flags)
+{
+	mutex_lock(lock);
+}
+
+void spin_lock_irqrestore(spinlock_t * lock, unsigned long flags)
+{
+	mutex_lock(lock);
+}
+
+void spin_unlock_irqrestore(spinlock_t * lock, unsigned long flags)
+{
+	mutex_unlock(lock);
+}
+
+void spin_lock_irq(spinlock_t * lock)
+{
+	mutex_lock(lock);
+}
+
+void spin_unlock_irq(spinlock_t * lock)
+{
+	mutex_unlock(lock);
+}
+
 
 /*************************************
  ** Memory allocation, linux/slab.h **
@@ -844,6 +893,17 @@ int fls(int x)
 
 	return 0;
 }
+
+int ffs(int x) { 
+	int i;
+	for (i = 0; i < 32; i++) {
+		if (x & (1 << i)) {
+			return i + 1;
+		}
+	}
+	return 0;
+}
+
 
 void bitmap_zero(unsigned long *dst, int nbits)
 {

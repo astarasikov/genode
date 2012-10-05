@@ -770,25 +770,6 @@ void *kmem_cache_zalloc(struct kmem_cache *k, gfp_t flags);
 void  kmem_cache_free(struct kmem_cache *, void *);
 
 
-/**********************
- ** linux/spinlock.h **
- **********************/
-
-typedef dde_kit_spin_lock spinlock_t;
-#define DEFINE_SPINLOCK(name) spinlock_t name = 0;
-
-void spin_lock(spinlock_t *lock);
-void spin_lock_nested(spinlock_t *lock, int subclass);
-void spin_unlock(spinlock_t *lock);
-void spin_lock_init(spinlock_t *lock);
-void spin_lock_irqsave(spinlock_t *lock, unsigned long flags);
-void spin_lock_irqrestore(spinlock_t *lock, unsigned long flags);
-void spin_unlock_irqrestore(spinlock_t *lock, unsigned long flags);
-void spin_lock_irq(spinlock_t *lock);
-void spin_unlock_irq(spinlock_t *lock);
-void assert_spin_locked(spinlock_t *lock);
-
-
 /*******************
  ** linux/mutex.h **
  *******************/
@@ -803,6 +784,26 @@ int  mutex_lock_interruptible(struct mutex *m);
 
 #define DEFINE_MUTEX(mutexname) struct mutex mutexname = { NULL };
 
+/**********************
+ ** linux/spinlock.h **
+ **********************/
+
+/* since we're running in userspace we can sleep any time,
+ * so we can use mutexes instead of spinlocks
+ */
+typedef struct mutex spinlock_t;
+#define DEFINE_SPINLOCK(name) DEFINE_MUTEX(name)
+
+void spin_lock(spinlock_t *lock);
+void spin_lock_nested(spinlock_t *lock, int subclass);
+void spin_unlock(spinlock_t *lock);
+void spin_lock_init(spinlock_t *lock);
+void spin_lock_irqsave(spinlock_t *lock, unsigned long flags);
+void spin_lock_irqrestore(spinlock_t *lock, unsigned long flags);
+void spin_unlock_irqrestore(spinlock_t *lock, unsigned long flags);
+void spin_lock_irq(spinlock_t *lock);
+void spin_unlock_irq(spinlock_t *lock);
+void assert_spin_locked(spinlock_t *lock);
 
 /*******************
  ** linux/rwsem.h **
@@ -887,7 +888,9 @@ ktime_t ktime_get_real(void);
 
 void msleep(unsigned int msecs);
 void udelay(unsigned long usecs);
-void mdelay(unsigned long usecs);
+
+#define mdelay msleep
+//void mdelay(unsigned long usecs);
 
 
 /***********************

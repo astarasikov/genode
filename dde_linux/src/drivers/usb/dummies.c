@@ -75,13 +75,6 @@ void print_hex_dump(const char *level, const char *prefix_str,
                     const void *buf, size_t len, bool ascii) { TRACE; }
 
 
-/**********************************
- ** linux/bitops.h, asm/bitops.h **
- **********************************/
-
-int ffs(int x) { TRACE; return 0; }
-
-
 /********************
  ** linux/string.h **
  ********************/
@@ -111,22 +104,14 @@ int utf16s_to_utf8s(const wchar_t *pwcs, int len,
 
 int isprint(int v) { TRACE; return 0; }
 
-
 /**********************
  ** linux/spinlock.h **
  **********************/
 
-void spin_lock(spinlock_t *lock) { SKIP; }
-void spin_lock_nested(spinlock_t *lock, int subclass) { TRACE; }
-void spin_unlock(spinlock_t *lock) { SKIP; }
-void spin_lock_init(spinlock_t *lock) { SKIP; }
-void spin_lock_irqsave(spinlock_t *lock, unsigned long flags) { SKIP; }
-void spin_lock_irqrestore(spinlock_t *lock, unsigned long flags) { SKIP; }
-void spin_unlock_irqrestore(spinlock_t *lock, unsigned long flags) { SKIP; }
-void spin_lock_irq(spinlock_t *lock) { SKIP; }
-void spin_unlock_irq(spinlock_t *lock) { SKIP; }
-void assert_spin_locked(spinlock_t *lock) { TRACE;}
-
+void assert_spin_locked(spinlock_t * lock)
+{
+	TRACE;
+}
 
 
 /*******************
@@ -175,7 +160,7 @@ ktime_t ktime_get_real(void) { TRACE; ktime_t ret; return ret; }
  ** linux/delay.h **
  *******************/
 
-void mdelay(unsigned long msecs) { TRACE; }
+//void mdelay(unsigned long msecs) { TRACE; }
 
 
 /***********************
