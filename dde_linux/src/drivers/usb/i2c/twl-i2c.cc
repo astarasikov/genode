@@ -108,6 +108,9 @@ extern "C" {
 int twl_i2c_write_u8(u8 mod_no, u8 val, u8 reg) {
 	u8 offset = twl6030_map[mod_no].base;
 	int ret;
+
+	PDBG("%s: mod_no=%d [%x] = %x\n", __func__, mod_no, reg, val);
+
 	if ((ret = i2c->write_byte(TWL_I2C_ADDR, offset + reg, val)) < 0) {
 		PERR("%s: failed %d", __func__, ret);
 		return ret;
@@ -122,6 +125,8 @@ int twl_i2c_read_u8(u8 mod_no, u8 *val, u8 reg) {
 		PERR("%s: failed %d", __func__, ret);
 		return ret;
 	}
+
+	PDBG("%s: mod_no=%d [%x] = %x\n", __func__, mod_no, reg, *val);
 	return 0;
 }
 
@@ -164,8 +169,6 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset) {
 } //extern "C"
 
 void platform_i2c_init(Services *services) {
-	PDBG("+%s\n", __func__);
-
 	static I2C::Connection _i2c;
 	i2c = &_i2c;
 	static Timer::Connection timer;
