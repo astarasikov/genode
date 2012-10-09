@@ -13,13 +13,15 @@
 #ifndef _ARM__PLATFORM__LX_EMUL_H_
 #define _ARM__PLATFORM__LX_EMUL_H_
 
+#include <l4/sys/cache.h>
+
 /*************************
  ** asm-generic/sizes.h **
  *************************/
 
 enum {
 	SZ_1K = 0x00000400,
-	SZ_4K = 0x00001000a,
+	SZ_4K = 0x00001000,
 };
 
 struct platform_device
