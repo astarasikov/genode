@@ -150,15 +150,15 @@ static inline void __raw_writel(u32 b, volatile void __iomem *addr)
 }
 
 #define __IO_WRITE(dst, src, len, type) do {\
-	size_t __i;\
-	for (__i = 0; __i < (len + sizeof(type) - 1) / sizeof(type); __i++) {\
+	int __i;\
+	for (__i = 0; __i < len; __i++) {\
 		((type*)dst)[0] = ((type*)src)[__i];\
 	}\
 } while (0)
 
 #define __IO_READ(dst, src, len, type) do {\
-	size_t __i;\
-	for (__i = 0; __i < (len + sizeof(type) - 1) / sizeof(type); __i++) {\
+	int __i;\
+	for (__i = 0; __i < len; __i++) {\
 		((type*)dst)[__i] = ((type*)src)[0];\
 	}\
 } while (0)
