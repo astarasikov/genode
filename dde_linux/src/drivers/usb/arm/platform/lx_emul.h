@@ -121,17 +121,6 @@ extern int platform_device_add_resources(struct platform_device *pdev,
  ** asm/generic/io.h **
  **********************/
 
-static inline u32 __raw_readl(const volatile void __iomem *addr)
-{
-	return *(const volatile u32 __force *) addr;
-}
-
-static inline void __raw_writel(u32 b, volatile void __iomem *addr)
-{
-	*(volatile u32 __force *) addr = b;
-}
-
-
 static inline u8 __raw_readb(const volatile void __iomem *addr)
 {
 	return *(const volatile u8 __force *) addr;
@@ -150,19 +139,53 @@ static inline void __raw_writew(u16 b, volatile void __iomem *addr) {
 	*(volatile u16 __force*) addr = b;
 }
 
-static inline void writesw(void __iomem *dst, const u8 *src, u16 len) {
-	memcpy(dst, src, len);
+static inline u32 __raw_readl(const volatile void __iomem *addr)
+{
+	return *(const volatile u32 __force *) addr;
 }
 
-#define writesb writesw
-#define writesl writesw
-
-static inline void readsw(void __iomem *src, u8 *dst, u16 len) {
-	memcpy(dst, src, len);
+static inline void __raw_writel(u32 b, volatile void __iomem *addr)
+{
+	*(volatile u32 __force *) addr = b;
 }
 
-#define readsb readsw
-#define readsl readsw
+#define __IO_WRITE(dst, src, len, type) do {\
+	size_t __i;\
+	for (__i = 0; __i < (len + sizeof(type) - 1) / sizeof(type); __i++) {\
+		((type*)dst)[0] = ((type*)src)[__i];\
+	}\
+} while (0)
+
+#define __IO_READ(dst, src, len, type) do {\
+	size_t __i;\
+	for (__i = 0; __i < (len + sizeof(type) - 1) / sizeof(type); __i++) {\
+		((type*)dst)[__i] = ((type*)src)[0];\
+	}\
+} while (0)
+
+static inline void writesl(void __iomem *dst, const void *src, int len) {
+	__IO_WRITE(dst, src, len, long);
+}
+
+static inline void writesw(void __iomem *dst, const void *src, int len) {
+	__IO_WRITE(dst, src, len, short int);
+}
+
+static inline void writesb(void __iomem *dst, const void *src, int len) {
+	__IO_WRITE(dst, src, len, char);
+}
+
+static inline void readsl(void __iomem *src, const void *dst, int len) {
+	__IO_READ(dst, src, len, long);
+}
+
+static inline void readsw(void __iomem *src, const void *dst, int len) {
+	__IO_READ(dst, src, len, short int);
+}
+
+static inline void readsb(void __iomem *src, const void *dst, int len) {
+	__IO_READ(dst, src, len, char);
+}
 
 /********************************
  ** linux/regulator/consumer.h **
