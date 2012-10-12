@@ -207,12 +207,7 @@ static struct otg_io_access_ops musb_ulpi_access = {
 
 /*-------------------------------------------------------------------------*/
 
-#define GENODE_BROKEN_FIFO 1
-#define GENODE_PRINT_FIFO 0
-
 #if !defined(CONFIG_USB_MUSB_TUSB6010) && !defined(CONFIG_USB_MUSB_BLACKFIN)
-
-#define T uint8_t
 
 /*
  * Load an endpoint's FIFO
@@ -226,8 +221,6 @@ void musb_write_fifo(struct musb_hw_ep *hw_ep, u16 len, const u8 *src)
 
 	printk("%s %cX ep%d fifo %p count %d buf %p\n",
 			__func__, 'T', hw_ep->epnum, fifo, len, src);
-	int i;
-#if !GENODE_BROKEN_FIFO
 	/* we can't assume unaligned reads work */
 	if (likely((0x01 & (unsigned long) src) == 0)) {
 		u16	index = 0;
@@ -248,27 +241,13 @@ void musb_write_fifo(struct musb_hw_ep *hw_ep, u16 len, const u8 *src)
 				index += len & ~0x01;
 			}
 		}
-		if (len & 0x01)
+		if (len & 0x01) {
 			musb_writeb(fifo, 0, src[index]);
+		}
 	} else  {
 		/* byte aligned */
 		writesb(fifo, src, len);
 	}
-#else
-	for (i = 0; i < (len + (sizeof(T) - 1)) / sizeof(T); i++) {
-		T val = ((T*)src)[i];
-		((T*)fifo)[0] = val;
-		#if GENODE_PRINT_FIFO
-		printk("%s: <%x> <- %x\n", __func__, fifo, val);  
-		#endif
-	}
-#endif
-
-#if GENODE_PRINT_FIFO
-	for (i = 0; i < len; i++) {
-		printk("%s: [%i] <- %x\n", __func__, i, src[i]);
-	}
-#endif
 }
 
 #if !defined(CONFIG_USB_MUSB_AM35X)
@@ -282,8 +261,6 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
 
 	printk("%s %cX ep%d fifo %p count %d buf %p\n",
 			__func__, 'R', hw_ep->epnum, fifo, len, dst);
-	int i;
-#if !GENODE_BROKEN_FIFO
 	/* we can't assume unaligned writes work */
 	if (likely((0x01 & (unsigned long) dst) == 0)) {
 		u16	index = 0;
@@ -304,28 +281,13 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
 				index = len & ~0x01;
 			}
 		}
-		if (len & 0x01)
+		if (len & 0x01) {
 			dst[index] = musb_readb(fifo, 0);
+		}
 	} else  {
 		/* byte aligned */
 		readsb(fifo, dst, len);
 	}
-#else	
-	for (i = 0; i < (len + sizeof(T) - 1) / sizeof(T); i++) {
-		T *addr = (T*)fifo;
-		T val = *addr;
-		((T*)dst)[i] = val;
-		#if GENODE_PRINT_FIFO
-		printk("%s: <%x> -> %x\n", __func__, addr, val);  
-		#endif
-	}
-#endif
-
-#if GENODE_PRINT_FIFO
-	for (i = 0; i < len; i++) {
-		printk("%s: [%i] -> %x\n", __func__, i, dst[i]);
-	}
-#endif
 }
 #endif
 
