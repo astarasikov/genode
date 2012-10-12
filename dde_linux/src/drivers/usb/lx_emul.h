@@ -33,8 +33,7 @@ extern "C" {
 
 #include <linux/usb/storage.h>
 
-#define VERBOSE_LX_EMUL  1
-
+#define VERBOSE_LX_EMUL  0
 
 #if VERBOSE_LX_EMUL
 #define DEBUG_COMPLETION 0
