@@ -21,8 +21,9 @@ struct Services
 	bool hid;
 	bool stor;
 	bool nic;
+	bool otg;
 
-	Services() : hid(false), stor(false), nic(false) { }
+	Services() : hid(false), stor(false), nic(false), otg(false) { }
 };
 
 void platform_hcd_init(Services *services);

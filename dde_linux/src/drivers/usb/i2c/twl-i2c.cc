@@ -101,6 +101,8 @@ static struct twl_mapping twl6030_map[] = {
 	{ SUB_CHIP_ID1, TWL6025_BASEADD_CHARGER },
 };
 
+static const int verbose = 0;
+
 extern "C" {
 
 #define TWL_I2C_ADDR 0x48
@@ -109,7 +111,8 @@ int twl_i2c_write_u8(u8 mod_no, u8 val, u8 reg) {
 	u8 offset = twl6030_map[mod_no].base;
 	int ret;
 
-	PDBG("%s: mod_no=%d [%x] = %x\n", __func__, mod_no, reg, val);
+	if (verbose)
+		PDBG("%s: mod_no=%d [%x] = %x\n", __func__, mod_no, reg, val);
 
 	if ((ret = i2c->write_byte(TWL_I2C_ADDR, offset + reg, val)) < 0) {
 		PERR("%s: failed %d", __func__, ret);
@@ -126,20 +129,26 @@ int twl_i2c_read_u8(u8 mod_no, u8 *val, u8 reg) {
 		return ret;
 	}
 
-	PDBG("%s: mod_no=%d [%x] = %x\n", __func__, mod_no, reg, *val);
+	if (verbose)
+		PDBG("%s: mod_no=%d [%x] = %x\n", __func__, mod_no, reg, *val);
 	return 0;
 }
 
 int twl6030_interrupt_unmask(u8 bit_mask, u8 offset) {
 	int ret;
-	PDBG("%s: bit_mask=%x offset=%x", __func__, bit_mask, offset);
+
+	if (verbose)
+		PDBG("%s: bit_mask=%x offset=%x", __func__, bit_mask, offset);
 
 	u8 tmp;
 	if ((ret = i2c->read_byte(TWL_I2C_ADDR, TWL6040_ALLINT_MSK, &tmp)) < 0) {
 		PERR("%s: failed %d", __func__, ret);
 		return ret;
 	}
-	PDBG("%s: %x -> %x", __func__, tmp, tmp & ~bit_mask);
+	
+	if (verbose)
+		PDBG("%s: %x -> %x", __func__, tmp, tmp & ~bit_mask);
+	
 	tmp &= ~bit_mask;
 	if ((ret = i2c->write_byte(TWL_I2C_ADDR, TWL6040_ALLINT_MSK, tmp)) < 0) {
 		PERR("%s: failed %d", __func__, ret);
@@ -150,14 +159,19 @@ int twl6030_interrupt_unmask(u8 bit_mask, u8 offset) {
 
 int twl6030_interrupt_mask(u8 bit_mask, u8 offset) {
 	int ret;
-	PDBG("%s: bit_mask=%x offset=%x", __func__, bit_mask, offset);
+
+	if (verbose)
+		PDBG("%s: bit_mask=%x offset=%x", __func__, bit_mask, offset);
 
 	u8 tmp;
 	if ((ret = i2c->read_byte(TWL_I2C_ADDR, TWL6040_ALLINT_MSK, &tmp)) < 0) {
 		PERR("%s: failed %d", __func__, ret);
 		return ret;
 	}
-	PDBG("%s: %x -> %x", __func__, tmp, tmp | bit_mask);
+
+	if (verbose)
+		PDBG("%s: %x -> %x", __func__, tmp, tmp | bit_mask);
+	
 	tmp |= bit_mask;
 	if ((ret = i2c->write_byte(TWL_I2C_ADDR, TWL6040_ALLINT_MSK, tmp)) < 0) {
 		PERR("%s: failed %d", __func__, ret);

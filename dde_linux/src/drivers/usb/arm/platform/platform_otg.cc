@@ -26,7 +26,6 @@
 using namespace Genode;
 
 #define MUSB_MODE MUSB_PERIPHERAL
-//#define MUSB_MODE MUSB_OTG
 #define MUSB_POWER 100
 
 static struct omap_musb_board_data musb_board_data = {};
@@ -87,29 +86,24 @@ struct Phy : Genode::Mmio {
 static Phy *phy;
 
 static int phy_init(struct device *dev) {
-	PDBG("+%s()", __func__);
 	phy->init();
 	return 0;
 }
 
 static int phy_exit(struct device *dev) {
-	PDBG("+%s()", __func__);
 	return 0;
 }
 
 static int phy_power(struct device *dev, int id, int on) {
-	PDBG("+%s(id=%d on=%d)", __func__, id, on);
 	phy->power(id, on);
 	return 0;
 }
 
 static int phy_set_clock(struct device *dev, int on) {
-	PDBG("+%s(on=%d)", __func__, on);
 	return 0;
 }
 
 static int phy_suspend(struct device *dev, int suspend) {
-	PDBG("+%s(suspend=%d)", __func__, suspend);
 	phy->suspend(suspend);
 	return 0;
 }
@@ -168,8 +162,8 @@ void panda_otg_init(Services *services) {
 	otg_resources[1].flags = IORESOURCE_IRQ;
 	otg_resources[1].name = "mc";
 
+	/* TODO: figure out how to handle newer boards with ULPI */
 	musb_board_data.interface_type = MUSB_INTERFACE_UTMI;
-	//musb_board_data.interface_type = MUSB_INTERFACE_ULPI;
 	musb_board_data.mode = MUSB_MODE;
 	musb_board_data.power = MUSB_POWER;
 

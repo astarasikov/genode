@@ -56,9 +56,6 @@ static void init(Services *services)
 	/* start jiffies */
 	dde_kit_timer_init(0, 0);
 
-	//FIXME: add otg, i2c to config and split dde_kit to multiple drivers
-	platform_i2c_init(services);
-
 	/* USB */
 	subsys_usb_init();
 
@@ -117,6 +114,13 @@ int main(int, char **)
 		services.nic = true;
 	} catch (Xml_node::Nonexistent_sub_node) {
 		PDBG("No <nic> config node found - not starting the USB Nic (Network) service");
+	}
+
+	try {
+		config()->xml_node().sub_node("otg");
+		services.otg = true;
+	} catch (Xml_node::Nonexistent_sub_node) {
+		PDBG("No <otg> config node found - not starting the USB OTG service");
 	}
 
 	Timer::init(&recv);

@@ -284,6 +284,9 @@ extern void panda_otg_init(Services *services);
 
 void platform_hcd_init(Services *services)
 {
+	/* initialize twl6030 */
+	platform_i2c_init(services);
+
 	/* register netowrk */
 	if (services->nic) {
 		module_usbnet_init();
@@ -312,7 +315,9 @@ void platform_hcd_init(Services *services)
 	pdev->dev.coherent_dma_mask = ~0;
 
 	platform_device_register(pdev);
-	
-	panda_otg_init(services);
+
+	if (services->otg) {
+		panda_otg_init(services);
+	}
 }
 
