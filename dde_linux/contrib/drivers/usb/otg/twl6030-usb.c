@@ -210,8 +210,8 @@ static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
 	twl6030_writeb(twl, TWL6030_MODULE_ID0 , 0x10, TWL6030_MISC2);
 
 	twl->usb3v3 = regulator_get(twl->dev, regulator_name);
-	//if (IS_ERR(twl->usb3v3))
-	//	return -ENODEV;
+	if (IS_ERR(twl->usb3v3))
+		return -ENODEV;
 
 	/* Program the USB_VBUS_CTRL_SET and set VBUS_ACT_COMP bit */
 	twl6030_writeb(twl, TWL_MODULE_USB, 0x4, USB_VBUS_CTRL_SET);
@@ -265,7 +265,6 @@ static irqreturn_t twl6030_usb_irq(int irq, void *_twl)
 						CONTROLLER_STAT1);
 	if (!(hw_state & STS_USB_ID)) {
 		if (vbus_state & VBUS_DET) {
-			printk("%s: B_IDLE\n", __func__);
 			regulator_enable(twl->usb3v3);
 			twl->asleep = 1;
 			status = USB_EVENT_VBUS;
@@ -276,7 +275,6 @@ static irqreturn_t twl6030_usb_irq(int irq, void *_twl)
 			atomic_notifier_call_chain(&twl->otg.notifier,
 						status, twl->otg.gadget);
 		} else {
-			printk("%s: EVENT_NONE\n", __func__);
 			status = USB_EVENT_NONE;
 			twl->linkstat = status;
 			twl->otg.last_event = status;
@@ -288,9 +286,7 @@ static irqreturn_t twl6030_usb_irq(int irq, void *_twl)
 			}
 		}
 	}
-#ifdef CONFIG_SYSFS
 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
-#endif
 
 	return IRQ_HANDLED;
 }
@@ -304,13 +300,12 @@ static irqreturn_t twl6030_usbotg_irq(int irq, void *_twl)
 	hw_state = twl6030_readb(twl, TWL6030_MODULE_ID0, STS_HW_CONDITIONS);
 
 	if (hw_state & STS_USB_ID) {
-		printk("%s: A_IDLE\n", __func__);
 
 		regulator_enable(twl->usb3v3);
 		twl->asleep = 1;
-		twl6030_writeb(twl, TWL_MODULE_USB, 0x1, USB_ID_INT_EN_HI_CLR);
-		twl6030_writeb(twl, TWL_MODULE_USB, 0x10, USB_ID_INT_EN_HI_SET);
-
+		twl6030_writeb(twl, TWL_MODULE_USB, USB_ID_INT_EN_HI_CLR, 0x1);
+		twl6030_writeb(twl, TWL_MODULE_USB, USB_ID_INT_EN_HI_SET,
+								0x10);
 		status = USB_EVENT_ID;
 		twl->otg.default_a = true;
 		twl->otg.state = OTG_STATE_A_IDLE;
@@ -319,10 +314,12 @@ static irqreturn_t twl6030_usbotg_irq(int irq, void *_twl)
 		atomic_notifier_call_chain(&twl->otg.notifier, status,
 							twl->otg.gadget);
 	} else  {
-		twl6030_writeb(twl, TWL_MODULE_USB, 0x10, USB_ID_INT_EN_HI_CLR);
-		twl6030_writeb(twl, TWL_MODULE_USB, 0x1, USB_ID_INT_EN_HI_SET);
+		twl6030_writeb(twl, TWL_MODULE_USB, USB_ID_INT_EN_HI_CLR,
+								0x10);
+		twl6030_writeb(twl, TWL_MODULE_USB, USB_ID_INT_EN_HI_SET,
+								0x1);
 	}
-	twl6030_writeb(twl, TWL_MODULE_USB, status, USB_ID_INT_LATCH_CLR);
+	twl6030_writeb(twl, TWL_MODULE_USB, USB_ID_INT_LATCH_CLR, status);
 
 	return IRQ_HANDLED;
 }
@@ -347,7 +344,7 @@ static int twl6030_enable_irq(struct otg_transceiver *x)
 {
 	struct twl6030_usb *twl = xceiv_to_twl(x);
 
-	twl6030_writeb(twl, TWL_MODULE_USB, 0x1, USB_ID_INT_EN_HI_SET);
+	twl6030_writeb(twl, TWL_MODULE_USB, USB_ID_INT_EN_HI_SET, 0x1);
 	twl6030_interrupt_unmask(0x05, REG_INT_MSK_LINE_C);
 	twl6030_interrupt_unmask(0x05, REG_INT_MSK_STS_C);
 
@@ -414,7 +411,7 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
 	twl = kzalloc(sizeof *twl, GFP_KERNEL);
 	if (!twl)
 		return -ENOMEM;
-	
+
 	twl->dev		= &pdev->dev;
 	twl->irq1		= platform_get_irq(pdev, 0);
 	twl->irq2		= platform_get_irq(pdev, 1);
@@ -429,22 +426,12 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
 	twl->otg.set_suspend	= twl6030_phy_suspend;
 	twl->otg.start_srp	= twl6030_start_srp;
 
-#if 0
-	//XXX: implement platform_get_irq and move to board code
-#define OMAP44XX_IRQ_GIC_START			32	
-#define OMAP44XX_IRQ_SYS_1N			(7 + OMAP44XX_IRQ_GIC_START)
-#define OMAP44XX_IRQ_SYS_2N			(119 + OMAP44XX_IRQ_GIC_START)
-	twl->irq1 = OMAP44XX_IRQ_SYS_1N;
-	twl->irq2 = OMAP44XX_IRQ_SYS_2N;
-#endif
-
 	/* init spinlock for workqueue */
 	spin_lock_init(&twl->lock);
-	printk("%s: twl->lock=%x\n", __func__, &twl->lock);
 
 	err = twl6030_usb_ldo_init(twl);
 	if (err) {
-		printk("ldo init failed\n");
+		dev_err(&pdev->dev, "ldo init failed\n");
 		kfree(twl);
 		return err;
 	}
@@ -452,45 +439,41 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, twl);
 	if (device_create_file(&pdev->dev, &dev_attr_vbus))
-		printk("could not create sysfs file\n");
+		dev_warn(&pdev->dev, "could not create sysfs file\n");
 
 	ATOMIC_INIT_NOTIFIER_HEAD(&twl->otg.notifier);
 
 	INIT_WORK(&twl->set_vbus_work, otg_set_vbus_work);
 
-#if 1
 	twl->irq_enabled = true;
 	status = request_threaded_irq(twl->irq1, NULL, twl6030_usbotg_irq,
 			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
 			"twl6030_usb", twl);
 	if (status < 0) {
-		printk("can't get IRQ %d, err %d\n",
+		dev_err(&pdev->dev, "can't get IRQ %d, err %d\n",
 			twl->irq1, status);
 		device_remove_file(twl->dev, &dev_attr_vbus);
 		kfree(twl);
 		return status;
 	}
-#endif
 
-#if 1
 	status = request_threaded_irq(twl->irq2, NULL, twl6030_usb_irq,
 			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
 			"twl6030_usb", twl);
 	if (status < 0) {
-		printk("can't get IRQ %d, err %d\n",
+		dev_err(&pdev->dev, "can't get IRQ %d, err %d\n",
 			twl->irq2, status);
 		free_irq(twl->irq1, twl);
 		device_remove_file(twl->dev, &dev_attr_vbus);
 		kfree(twl);
 		return status;
 	}
-#endif
 
 	twl->asleep = 0;
 	pdata->phy_init(dev);
 	twl6030_phy_suspend(&twl->otg, 0);
 	twl6030_enable_irq(&twl->otg);
-	printk("Initialized TWL6030 USB module\n");
+	dev_info(&pdev->dev, "Initialized TWL6030 USB module\n");
 
 	return 0;
 }

@@ -207,7 +207,7 @@ static inline void musb_try_b_hnp_enable(struct musb *musb)
 	void __iomem	*mbase = musb->mregs;
 	u8		devctl;
 
-	printk("HNP: Setting HR\n");
+	dev_dbg(musb->controller, "HNP: Setting HR\n");
 	devctl = musb_readb(mbase, MUSB_DEVCTL);
 	musb_writeb(mbase, MUSB_DEVCTL, devctl | MUSB_DEVCTL_HR);
 }
@@ -304,7 +304,7 @@ __acquires(musb->lock)
 				/* Maybe start the first request in the queue */
 				request = next_request(musb_ep);
 				if (!musb_ep->busy && request) {
-					printk("restarting the request\n");
+					dev_dbg(musb->controller, "restarting the request\n");
 					musb_ep_restart(musb, request);
 				}
 
@@ -334,51 +334,51 @@ __acquires(musb->lock)
 
 					switch (ctrlrequest->wIndex >> 8) {
 					case 1:
-						printk("TEST_J\n");
+						pr_debug("TEST_J\n");
 						/* TEST_J */
 						musb->test_mode_nr =
 							MUSB_TEST_J;
 						break;
 					case 2:
 						/* TEST_K */
-						printk("TEST_K\n");
+						pr_debug("TEST_K\n");
 						musb->test_mode_nr =
 							MUSB_TEST_K;
 						break;
 					case 3:
 						/* TEST_SE0_NAK */
-						printk("TEST_SE0_NAK\n");
+						pr_debug("TEST_SE0_NAK\n");
 						musb->test_mode_nr =
 							MUSB_TEST_SE0_NAK;
 						break;
 					case 4:
 						/* TEST_PACKET */
-						printk("TEST_PACKET\n");
+						pr_debug("TEST_PACKET\n");
 						musb->test_mode_nr =
 							MUSB_TEST_PACKET;
 						break;
 
 					case 0xc0:
 						/* TEST_FORCE_HS */
-						printk("TEST_FORCE_HS\n");
+						pr_debug("TEST_FORCE_HS\n");
 						musb->test_mode_nr =
 							MUSB_TEST_FORCE_HS;
 						break;
 					case 0xc1:
 						/* TEST_FORCE_FS */
-						printk("TEST_FORCE_FS\n");
+						pr_debug("TEST_FORCE_FS\n");
 						musb->test_mode_nr =
 							MUSB_TEST_FORCE_FS;
 						break;
 					case 0xc2:
 						/* TEST_FIFO_ACCESS */
-						printk("TEST_FIFO_ACCESS\n");
+						pr_debug("TEST_FIFO_ACCESS\n");
 						musb->test_mode_nr =
 							MUSB_TEST_FIFO_ACCESS;
 						break;
 					case 0xc3:
 						/* TEST_FORCE_HOST */
-						printk("TEST_FORCE_HOST\n");
+						pr_debug("TEST_FORCE_HOST\n");
 						musb->test_mode_nr =
 							MUSB_TEST_FORCE_HOST;
 						break;
@@ -549,7 +549,7 @@ static void ep0_txstate(struct musb *musb)
 
 	if (!req) {
 		/* WARN_ON(1); */
-		printk("odd; csr0 %04x\n", musb_readw(regs, MUSB_CSR0));
+		dev_dbg(musb->controller, "odd; csr0 %04x\n", musb_readw(regs, MUSB_CSR0));
 		return;
 	}
 
@@ -606,7 +606,7 @@ musb_read_setup(struct musb *musb, struct usb_ctrlrequest *req)
 	/* NOTE:  earlier 2.6 versions changed setup packets to host
 	 * order, but now USB packets always stay in USB byte order.
 	 */
-	printk("SETUP req%02x.%02x v%04x i%04x l%d\n",
+	dev_dbg(musb->controller, "SETUP req%02x.%02x v%04x i%04x l%d\n",
 		req->bRequestType,
 		req->bRequest,
 		le16_to_cpu(req->wValue),
@@ -674,7 +674,7 @@ irqreturn_t musb_g_ep0_irq(struct musb *musb)
 	csr = musb_readw(regs, MUSB_CSR0);
 	len = musb_readb(regs, MUSB_COUNT0);
 
-	printk("csr %04x, count %d, myaddr %d, ep0stage %s\n",
+	dev_dbg(musb->controller, "csr %04x, count %d, myaddr %d, ep0stage %s\n",
 			csr, len,
 			musb_readb(mbase, MUSB_FADDR),
 			decode_ep0stage(musb->ep0_state));
@@ -753,7 +753,7 @@ irqreturn_t musb_g_ep0_irq(struct musb *musb)
 
 		/* enter test mode if needed (exit by reset) */
 		else if (musb->test_mode) {
-			printk("entering TESTMODE\n");
+			dev_dbg(musb->controller, "entering TESTMODE\n");
 
 			if (MUSB_TEST_PACKET == musb->test_mode_nr)
 				musb_load_testpacket(musb);
@@ -865,7 +865,7 @@ setup:
 				break;
 			}
 
-			printk("handled %d, csr %04x, ep0stage %s\n",
+			dev_dbg(musb->controller, "handled %d, csr %04x, ep0stage %s\n",
 				handled, csr,
 				decode_ep0stage(musb->ep0_state));
 
@@ -882,7 +882,7 @@ setup:
 			if (handled < 0) {
 				musb_ep_select(mbase, 0);
 stall:
-				printk("stall (%d)\n", handled);
+				dev_dbg(musb->controller, "stall (%d)\n", handled);
 				musb->ackpend |= MUSB_CSR0_P_SENDSTALL;
 				musb->ep0_state = MUSB_EP0_STAGE_IDLE;
 finish:
@@ -897,13 +897,11 @@ finish:
 		/* This should not happen. But happens with tusb6010 with
 		 * g_file_storage and high speed. Do nothing.
 		 */
-		printk("%s: ackwait\n", __func__);
 		retval = IRQ_HANDLED;
 		break;
 
 	default:
 		/* "can't happen" */
-		printk("%s: default case\n", __func__);
 		WARN_ON(1);
 		musb_writew(regs, MUSB_CSR0, MUSB_CSR0_P_SENDSTALL);
 		musb->ep0_state = MUSB_EP0_STAGE_IDLE;
@@ -964,7 +962,7 @@ musb_g_ep0_queue(struct usb_ep *e, struct usb_request *r, gfp_t gfp_flags)
 		status = 0;
 		break;
 	default:
-		printk("ep0 request queued in state %d\n",
+		dev_dbg(musb->controller, "ep0 request queued in state %d\n",
 				musb->ep0_state);
 		status = -EINVAL;
 		goto cleanup;
@@ -973,7 +971,7 @@ musb_g_ep0_queue(struct usb_ep *e, struct usb_request *r, gfp_t gfp_flags)
 	/* add request to the list */
 	list_add_tail(&req->list, &ep->req_list);
 
-	printk("queue to %s (%s), length=%d\n",
+	dev_dbg(musb->controller, "queue to %s (%s), length=%d\n",
 			ep->name, ep->is_in ? "IN/TX" : "OUT/RX",
 			req->request.length);
 
@@ -1066,7 +1064,7 @@ static int musb_g_ep0_halt(struct usb_ep *e, int value)
 		musb->ackpend = 0;
 		break;
 	default:
-		printk("ep0 can't halt in state %d\n", musb->ep0_state);
+		dev_dbg(musb->controller, "ep0 can't halt in state %d\n", musb->ep0_state);
 		status = -EINVAL;
 	}
 

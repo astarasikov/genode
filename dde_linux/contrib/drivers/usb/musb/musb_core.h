@@ -587,16 +587,6 @@ static inline int musb_platform_get_vbus_status(struct musb *musb)
 
 static inline int musb_platform_init(struct musb *musb)
 {
-	if (!musb) {
-		printk("%s: musb=NULL\n", __func__);
-		return -EINVAL;
-	}
-
-	if (!musb->ops) {
-		printk("%s: ops=NULL\n", __func__);
-		return -EINVAL;
-	}
-
 	if (!musb->ops->init)
 		return -EINVAL;
 

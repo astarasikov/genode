@@ -400,11 +400,11 @@ MODULE_DESCRIPTION(PREFIX DRIVER_DESC);
 MODULE_AUTHOR("David Brownell, Benedikt Spanger");
 MODULE_LICENSE("GPL");
 
-static int __init gadget_ether_init(void)
+static int __init init(void)
 {
 	return usb_composite_probe(&eth_driver, eth_bind);
 }
-module_init(gadget_ether_init);
+module_init(init);
 
 static void __exit cleanup(void)
 {

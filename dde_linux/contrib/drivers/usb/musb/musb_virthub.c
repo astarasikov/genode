@@ -74,7 +74,7 @@ static void musb_port_suspend(struct musb *musb, bool do_suspend)
 				break;
 		}
 
-		printk("Root port suspended, power %02x\n", power);
+		dev_dbg(musb->controller, "Root port suspended, power %02x\n", power);
 
 		musb->port1_status |= USB_PORT_STAT_SUSPEND;
 		switch (musb->xceiv->state) {
@@ -95,7 +95,7 @@ static void musb_port_suspend(struct musb *musb, bool do_suspend)
 			musb_platform_try_idle(musb, 0);
 			break;
 		default:
-			printk("bogus rh suspend? %s\n",
+			dev_dbg(musb->controller, "bogus rh suspend? %s\n",
 				otg_state_string(musb->xceiv->state));
 		}
 	} else if (power & MUSB_POWER_SUSPENDM) {
@@ -103,7 +103,7 @@ static void musb_port_suspend(struct musb *musb, bool do_suspend)
 		power |= MUSB_POWER_RESUME;
 		musb_writeb(mbase, MUSB_POWER, power);
 
-		printk("Root port resuming, power %02x\n", power);
+		dev_dbg(musb->controller, "Root port resuming, power %02x\n", power);
 
 		/* later, GetPortStatus will stop RESUME signaling */
 		musb->port1_status |= MUSB_PORT_STAT_RESUME;
@@ -117,7 +117,7 @@ static void musb_port_reset(struct musb *musb, bool do_reset)
 	void __iomem	*mbase = musb->mregs;
 
 	if (musb->xceiv->state == OTG_STATE_B_IDLE) {
-		printk("HNP: Returning from HNP; no hub reset from b_idle\n");
+		dev_dbg(musb->controller, "HNP: Returning from HNP; no hub reset from b_idle\n");
 		musb->port1_status &= ~USB_PORT_STAT_RESET;
 		return;
 	}
@@ -155,7 +155,7 @@ static void musb_port_reset(struct musb *musb, bool do_reset)
 		musb->port1_status &= ~USB_PORT_STAT_ENABLE;
 		musb->rh_timer = jiffies + msecs_to_jiffies(50);
 	} else {
-		printk("root port reset stopped\n");
+		dev_dbg(musb->controller, "root port reset stopped\n");
 		musb_writeb(mbase, MUSB_POWER,
 				power & ~MUSB_POWER_RESET);
 
@@ -163,7 +163,7 @@ static void musb_port_reset(struct musb *musb, bool do_reset)
 
 		power = musb_readb(mbase, MUSB_POWER);
 		if (power & MUSB_POWER_HSMODE) {
-			printk("high-speed device connected\n");
+			dev_dbg(musb->controller, "high-speed device connected\n");
 			musb->port1_status |= USB_PORT_STAT_HIGH_SPEED;
 		}
 
@@ -202,7 +202,7 @@ void musb_root_disconnect(struct musb *musb)
 		musb->xceiv->state = OTG_STATE_B_IDLE;
 		break;
 	default:
-		printk("host disconnect (%s)\n",
+		dev_dbg(musb->controller, "host disconnect (%s)\n",
 			otg_state_string(musb->xceiv->state));
 	}
 }
@@ -282,7 +282,7 @@ int musb_hub_control(
 		default:
 			goto error;
 		}
-		printk("clear feature %d\n", wValue);
+		dev_dbg(musb->controller, "clear feature %d\n", wValue);
 		musb->port1_status &= ~(1 << wValue);
 		break;
 	case GetHubDescriptor:
@@ -324,7 +324,7 @@ int musb_hub_control(
 
 			power = musb_readb(musb->mregs, MUSB_POWER);
 			power &= ~MUSB_POWER_RESUME;
-			printk("root port resume stopped, power %02x\n",
+			dev_dbg(musb->controller, "root port resume stopped, power %02x\n",
 					power);
 			musb_writeb(musb->mregs, MUSB_POWER, power);
 
@@ -347,7 +347,7 @@ int musb_hub_control(
 				(__le32 *) buf);
 
 		/* port change status is more interesting */
-		printk("port status %08x\n",
+		dev_dbg(musb->controller, "port status %08x\n",
 				musb->port1_status);
 		break;
 	case SetPortFeature:
@@ -382,24 +382,24 @@ int musb_hub_control(
 			wIndex >>= 8;
 			switch (wIndex) {
 			case 1:
-				printk("TEST_J\n");
+				pr_debug("TEST_J\n");
 				temp = MUSB_TEST_J;
 				break;
 			case 2:
-				printk("TEST_K\n");
+				pr_debug("TEST_K\n");
 				temp = MUSB_TEST_K;
 				break;
 			case 3:
-				printk("TEST_SE0_NAK\n");
+				pr_debug("TEST_SE0_NAK\n");
 				temp = MUSB_TEST_SE0_NAK;
 				break;
 			case 4:
-				printk("TEST_PACKET\n");
+				pr_debug("TEST_PACKET\n");
 				temp = MUSB_TEST_PACKET;
 				musb_load_testpacket(musb);
 				break;
 			case 5:
-				printk("TEST_FORCE_ENABLE\n");
+				pr_debug("TEST_FORCE_ENABLE\n");
 				temp = MUSB_TEST_FORCE_HOST
 					| MUSB_TEST_FORCE_HS;
 
@@ -407,7 +407,7 @@ int musb_hub_control(
 						MUSB_DEVCTL_SESSION);
 				break;
 			case 6:
-				printk("TEST_FIFO_ACCESS\n");
+				pr_debug("TEST_FIFO_ACCESS\n");
 				temp = MUSB_TEST_FIFO_ACCESS;
 				break;
 			default:
@@ -418,7 +418,7 @@ int musb_hub_control(
 		default:
 			goto error;
 		}
-		printk("set feature %d\n", wValue);
+		dev_dbg(musb->controller, "set feature %d\n", wValue);
 		musb->port1_status |= 1 << wValue;
 		break;
 

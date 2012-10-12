@@ -127,7 +127,7 @@ static void configure_channel(struct dma_channel *channel,
 	u8 bchannel = musb_channel->idx;
 	u16 csr = 0;
 
-	printk("%p, pkt_sz %d, addr 0x%x, len %d, mode %d\n",
+	dev_dbg(musb->controller, "%p, pkt_sz %d, addr 0x%x, len %d, mode %d\n",
 			channel, packet_sz, dma_addr, len, mode);
 
 	if (mode) {
@@ -162,7 +162,7 @@ static int dma_channel_program(struct dma_channel *channel,
 	struct musb_dma_controller *controller = musb_channel->controller;
 	struct musb *musb = controller->private_data;
 
-	printk("ep%d-%s pkt_sz %d, dma_addr 0x%x length %d, mode %d\n",
+	dev_dbg(musb->controller, "ep%d-%s pkt_sz %d, dma_addr 0x%x length %d, mode %d\n",
 		musb_channel->epnum,
 		musb_channel->transmit ? "Tx" : "Rx",
 		packet_sz, dma_addr, len, mode);
@@ -275,7 +275,7 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
 #endif
 
 	if (!int_hsdma) {
-		printk("spurious DMA irq\n");
+		dev_dbg(musb->controller, "spurious DMA irq\n");
 
 		for (bchannel = 0; bchannel < MUSB_HSDMA_CHANNELS; bchannel++) {
 			musb_channel = (struct musb_dma_channel *)
@@ -289,7 +289,7 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
 			}
 		}
 
-		printk("int_hsdma = 0x%x\n", int_hsdma);
+		dev_dbg(musb->controller, "int_hsdma = 0x%x\n", int_hsdma);
 
 		if (!int_hsdma)
 			goto done;
@@ -316,7 +316,7 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
 				channel->actual_len = addr
 					- musb_channel->start_addr;
 
-				printk("ch %p, 0x%x -> 0x%x (%zu / %d) %s\n",
+				dev_dbg(musb->controller, "ch %p, 0x%x -> 0x%x (%zu / %d) %s\n",
 					channel, musb_channel->start_addr,
 					addr, channel->actual_len,
 					musb_channel->len,
@@ -393,7 +393,7 @@ dma_controller_create(struct musb *musb, void __iomem *base)
 		return NULL;
 	}
 
-	controller = kzalloc(sizeof(*controller), GFP_NOIO);
+	controller = kzalloc(sizeof(*controller), GFP_KERNEL);
 	if (!controller)
 		return NULL;
 
