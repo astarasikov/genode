@@ -315,9 +315,6 @@ void platform_hcd_init(Services *services)
 	pdev->dev.coherent_dma_mask = ~0;
 
 	platform_device_register(pdev);
-
-	if (services->otg) {
-		panda_otg_init(services);
-	}
+	panda_otg_init(services);
 }
 

@@ -116,13 +116,6 @@ int main(int, char **)
 		PDBG("No <nic> config node found - not starting the USB Nic (Network) service");
 	}
 
-	try {
-		config()->xml_node().sub_node("otg");
-		services.otg = true;
-	} catch (Xml_node::Nonexistent_sub_node) {
-		PDBG("No <otg> config node found - not starting the USB OTG service");
-	}
-
 	Timer::init(&recv);
 	Irq::init(&recv);
 	Event::init(&recv);

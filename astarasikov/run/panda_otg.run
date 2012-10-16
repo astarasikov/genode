@@ -74,7 +74,6 @@ set config  {
 		<config>
 			<hid/>
 			<nic mac="2e:60:90:0c:4e:01" />
-			<otg/>
 		</config>
 		<service name="I2C"> <child name="omap4_i2c1" /> </service>
 	</start>
