@@ -18,9 +18,15 @@ struct Dispc : Genode::Mmio
 	 */
 	struct Control1 : Register<0x40, 32>
 	{
+		struct Lcd_enable : Bitfield<0, 1> { };
 		struct Tv_enable : Bitfield<1, 1> { };
 
 		struct Go_tv : Bitfield<6, 1>
+		{
+			enum { HW_UPDATE_DONE    = 0x0,   /* set by HW after updating */
+			       REQUEST_HW_UPDATE = 0x1 }; /* must be set by user */
+		};
+		struct Go_lcd : Bitfield<5, 1>
 		{
 			enum { HW_UPDATE_DONE    = 0x0,   /* set by HW after updating */
 			       REQUEST_HW_UPDATE = 0x1 }; /* must be set by user */
@@ -41,7 +47,7 @@ struct Dispc : Genode::Mmio
 		};
 	};
 
-	struct Size_tv : Register<0x78, 32>
+	struct Size_tv : Register<0x7c, 32>
 	{
 		struct Width  : Bitfield<0, 11>  { };
 		struct Height : Bitfield<16, 11> { };
@@ -50,12 +56,13 @@ struct Dispc : Genode::Mmio
 	/**
 	 * Configures base address of the graphics buffer
 	 */
-	struct Gfx_ba1 : Register<0x80, 32> { };
+	struct Gfx_ba0 : Register<0x80, 32> { };
+	struct Gfx_ba1 : Register<0x84, 32> { };
 
 	/**
 	 * Configures the size of the graphics window
 	 */
-	struct Gfx_size : Register<0x8c, 32>
+	struct Gfx_size : Register<0x24, 32>
 	{
 		struct Sizex : Bitfield<0,11>  { };
 		struct Sizey : Bitfield<16,11> { };
@@ -64,6 +71,8 @@ struct Dispc : Genode::Mmio
 	/**
 	 * Configures the graphics attributes
 	 */
+	//0Xa0
+	// 0x20
 	struct Gfx_attributes : Register<0xa0, 32>
 	{
 		struct Enable : Bitfield<0, 1> { };
