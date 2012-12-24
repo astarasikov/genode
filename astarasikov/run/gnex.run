@@ -1,0 +1,95 @@
+assert_spec foc
+assert_spec platform_panda
+
+#
+# Build
+#
+build {
+	core
+	init
+	drivers/timer
+	drivers/framebuffer
+	drivers/usb
+	server/part_blk
+	l4linux
+}
+
+create_boot_directory
+
+#
+# Config
+#
+set config  {
+<config prio_levels="2">
+	<parent-provides>
+		<service name="ROM"/>
+		<service name="RAM"/>
+		<service name="IRQ"/>
+		<service name="IO_MEM"/>
+		<service name="IO_PORT"/>
+		<service name="CAP"/>
+		<service name="PD"/>
+		<service name="RM"/>
+		<service name="CPU"/>
+		<service name="LOG"/>
+		<service name="SIGNAL"/>
+	</parent-provides>
+	<default-route>
+		<any-service> <parent/> <any-child/> </any-service>
+	</default-route>
+	<start name="timer" priority="0">
+		<resource name="RAM" quantum="1M"/>
+		<provides><service name="Timer"/></provides>
+	</start>
+	<start name="fb_drv" priority="-1">
+		<binary name="omap4_fb_drv"/>
+		<resource name="RAM" quantum="10M"/>
+		<provides><service name="Framebuffer"/></provides>
+	</start>
+	<start name="usb_drv" priority="-1">
+		<resource name="RAM" quantum="40M"/>
+		<provides>
+			<service name="Input"/>
+			<service name="Nic"/>
+		</provides>
+		<config>
+			<hid/>
+			<nic mac="2e:60:90:0c:4e:01" />
+		</config>
+	</start>
+	<start name="vmlinux.1" priority="-2">
+		<binary name="l4linux"/>
+		<resource name="RAM" quantum="296M"/>
+		<config args="mem=254M l4x_rd=initrd.gz">
+		</config>
+		<route>
+			<any-service> <any-child/> <parent/> </any-service>
+		</route>
+	</start>
+</config>}
+
+install_config $config
+
+#
+# Boot modules
+#
+set boot_modules {
+	core
+	init
+	timer
+	part_blk
+	l4linux
+	initrd.gz
+	omap4_fb_drv
+	usb_drv
+}
+
+set uri "https://github.com/downloads/skalk/genode/busybox-initrd-arm-20120710.gz"
+
+if {![file exists bin/initrd.gz]} {
+	puts "Download initramfs ..."
+	exec >& /dev/null wget -c -O bin/initrd.gz $uri
+}
+
+build_boot_image  [join $boot_modules " "]
+
