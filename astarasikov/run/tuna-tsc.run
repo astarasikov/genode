@@ -1,0 +1,232 @@
+#
+# Build
+#
+
+set build_components {
+	core
+	init
+	
+	drivers/timer
+	drivers/framebuffer
+	drivers/usb
+
+	server/nic_bridge
+	server/nitpicker
+	server/nit_fb
+	server/terminal
+	server/terminal_log
+
+	server/liquid_framebuffer
+	server/nitlog
+	app/launchpad
+	app/scout
+	test/nitpicker
+
+	test/mms-touchscreen
+}
+
+build $build_components
+create_boot_directory
+
+#
+# Generate config
+#
+
+set config {
+<config>
+	<parent-provides>
+		<service name="ROM"/>
+		<service name="RAM"/>
+		<service name="IRQ"/>
+		<service name="IO_MEM"/>
+		<service name="IO_PORT"/>
+		<service name="CAP"/>
+		<service name="PD"/>
+		<service name="RM"/>
+		<service name="CPU"/>
+		<service name="LOG"/>
+		<service name="SIGNAL"/>
+	</parent-provides>
+	<default-route>
+		<any-service> <parent/> <any-child/> </any-service>
+	</default-route>
+	
+	<start name="timer">
+		<resource name="RAM" quantum="1M"/>
+		<provides><service name="Timer"/></provides>
+	</start>
+
+	<start name="fb_drv">
+		<binary name="omap4_fb_drv" />
+		<resource name="RAM" quantum="8M"/>
+		<provides><service name="Framebuffer"/></provides>
+	</start>
+
+	<start name="usb_drv">
+		<resource name="RAM" quantum="40M"/>
+		<provides>
+			<service name="Input"/>
+			<service name="Nic"/>
+		</provides>
+		<config>
+			<hid/>
+			<nic mac="2e:60:90:0c:4e:01" />
+		</config>
+	</start>
+
+	<start name="nic_bridge">
+		<resource name="RAM" quantum="2M"/>
+		<provides><service name="Nic"/></provides>
+		<route>
+			<service name="Nic"> <child name="usb_drv"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+	
+	<!-- framebuffer multiplexing -->
+	
+	<start name="nitpicker_root">
+		<binary name="nitpicker" />
+		<resource name="RAM" quantum="20M"/>
+		<provides><service name="Nitpicker"/></provides>
+		<route>
+			<service name="Input">       <child name="usb_drv"/> </service>
+			<service name="Framebuffer"> <child name="fb_drv"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+	<start name="main_fb">
+		<binary name="nit_fb"/>
+		<resource name="RAM" quantum="10M"/>
+		<provides>
+			<service name="Framebuffer"/>
+			<service name="Input"/>
+		</provides>
+		<config xpos="0" ypos="640" width="720" height="640"/>
+		<route>
+			<service name="Nitpicker"> <child name="nitpicker_root"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+	<start name="log_fb">
+		<binary name="nit_fb"/>
+		<resource name="RAM" quantum="4M"/>
+		<provides>
+			<service name="Framebuffer"/>
+			<service name="Input"/>
+		</provides>
+		<config xpos="0" ypos="0" width="720" height="640"/>
+		<route>
+			<service name="Nitpicker"> <child name="nitpicker_root"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+	<start name="log_term">
+		<binary name="terminal"/>
+		<resource name="RAM" quantum="1M"/>
+		<provides><service name="Terminal"/></provides>
+		<route>
+			<service name="Input">       <child name="blocktest_fb"/> </service>
+			<service name="Framebuffer"> <child name="blocktest_fb"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+	<start name="main_log">
+		<binary name="terminal_log" />
+		<resource name="RAM" quantum="1M"/>
+		<provides><service name="LOG"/></provides>
+		<route>
+			<service name="Terminal"> <child name="log_term"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+	
+	<!--
+	<start name="vmlinux.1">
+		<binary name="l4linux"/>
+		<resource name="RAM" quantum="96M"/>
+		<config args="mem=54M l4x_rd=initrd.gz">
+		</config>
+		<route>
+			<service name="Input">       <child name="main_fb"/> </service>
+			<service name="Framebuffer"> <child name="main_fb"/> </service>
+			<service name="Nic">         <child name="nic_bridge"/> </service>
+			<any-service> <parent/> </any-service>
+		</route>
+	</start>
+	-->
+
+	<start name="test-mms-touchscreen">
+		<resource name="RAM" quantum="1M" />
+		<route>
+			<service name="Timer"> <child name="timer" /> </service>
+			<service name="LOG"> <child name="main_log"/> </service>
+		</route>
+	</start>
+
+	<start name="nitpicker_launchpad">
+		<binary name="nitpicker" />
+		<resource name="RAM" quantum="8M"/>
+		<provides><service name="Nitpicker"/></provides>
+		<route>
+			<service name="Input">       <child name="main_fb"/> </service>
+			<service name="Framebuffer"> <child name="main_fb"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+	
+	<start name="launchpad">
+		<resource name="RAM" quantum="40M"/>
+		<config args="ram_quota=2000000" />
+		<route>
+			<service name="Nitpicker"> <child name="nitpicker_launchpad"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+</config>}
+
+install_config $config
+
+#
+# Boot modules
+#
+
+# generic modules
+set boot_modules {
+	core init
+	timer
+	nic_bridge
+	nitpicker
+	nit_fb
+	terminal
+	terminal_log
+	liquid_fb
+	launchpad
+	scout
+	testnit
+	nitlog
+	omap4_fb_drv
+	usb_drv
+	l4linux
+	initrd.gz
+	test-mms-touchscreen
+}
+
+if {[have_spec x86]} {
+	set uri "https://github.com/downloads/skalk/genode/busybox-initrd-x86-20120618.gz"
+} elseif {[have_spec arm]} {
+	set uri "https://github.com/downloads/skalk/genode/busybox-initrd-arm-20120618.gz"
+}
+if {![file exists bin/initrd.gz]} {
+	puts "Download initramfs ..."
+	exec >& /dev/null wget -c -O bin/initrd.gz $uri
+}
+
+build_boot_image  [join $boot_modules " "]
+append qemu_args " -m 256 "
+
+#run_genode_until forever
