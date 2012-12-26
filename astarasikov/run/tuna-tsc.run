@@ -9,6 +9,7 @@ set build_components {
 	drivers/timer
 	drivers/framebuffer
 	drivers/usb
+	drivers/i2c
 
 	server/nic_bridge
 	server/nitpicker
@@ -23,6 +24,7 @@ set build_components {
 	test/nitpicker
 
 	test/mms-touchscreen
+	test/i2c-tuna
 }
 
 build $build_components
@@ -159,12 +161,34 @@ set config {
 		</route>
 	</start>
 	-->
+	
+	<start name="omap4_i2c4">
+		<binary name="omap_i2c_drv" />
+		<resource name="RAM" quantum="1M" />
+		<provides><service name="I2C"/></provides>
+		<config bus_number="4" />
+		<route>
+			<service name="LOG"> <child name="main_log"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+	
+	<start name="test-i2c-tuna">
+		<resource name="RAM" quantum="1M" />
+		<service name="I2C"> <child name="omap4_i2c4" /> </service>
+		<service name="Timer"> <child name="timer" /> </service>
+		<route>
+			<service name="LOG"> <child name="main_log"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
 
 	<start name="test-mms-touchscreen">
 		<resource name="RAM" quantum="1M" />
 		<route>
 			<service name="Timer"> <child name="timer" /> </service>
 			<service name="LOG"> <child name="main_log"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
 		</route>
 	</start>
 
@@ -214,6 +238,8 @@ set boot_modules {
 	l4linux
 	initrd.gz
 	test-mms-touchscreen
+	omap_i2c_drv
+	test-i2c-tuna
 }
 
 if {[have_spec x86]} {
