@@ -1,0 +1,282 @@
+# Build
+#
+
+set build_components {
+	core
+	init
+	
+	drivers/timer
+	drivers/framebuffer
+	drivers/usb
+	drivers/gpio
+	drivers/sd_card
+
+	server/nic_bridge
+	server/nitpicker
+	server/nit_fb
+	server/terminal
+	server/terminal_log
+
+	server/liquid_framebuffer
+	server/nitlog
+	app/launchpad
+	app/scout
+	test/nitpicker
+
+	l4linux
+}
+
+build $build_components
+create_boot_directory
+
+#
+# Generate config
+#
+
+set config {
+<config>
+	<parent-provides>
+		<service name="ROM"/>
+		<service name="RAM"/>
+		<service name="IRQ"/>
+		<service name="IO_MEM"/>
+		<service name="IO_PORT"/>
+		<service name="CAP"/>
+		<service name="PD"/>
+		<service name="RM"/>
+		<service name="CPU"/>
+		<service name="LOG"/>
+		<service name="SIGNAL"/>
+	</parent-provides>
+	<default-route>
+		<any-service> <parent/> <any-child/> </any-service>
+	</default-route>
+	
+	<start name="timer">
+		<resource name="RAM" quantum="1M"/>
+		<provides><service name="Timer"/></provides>
+	</start>
+
+	<start name="fb_drv">
+		<binary name="omap4_fb_drv" />
+		<resource name="RAM" quantum="20M"/>
+		<provides><service name="Framebuffer"/></provides>
+	</start>
+
+	<start name="usb_drv">
+		<resource name="RAM" quantum="40M"/>
+		<provides>
+			<service name="Input"/>
+			<service name="Nic"/>
+		</provides>
+		<config>
+			<hid/>
+			<nic mac="2e:60:90:0c:4e:01" />
+		</config>
+	</start>
+
+	<start name="nic_bridge">
+		<resource name="RAM" quantum="2M"/>
+		<provides><service name="Nic"/></provides>
+		<route>
+			<service name="Nic"> <child name="usb_drv"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+	<start name="omap4_gpio">
+		<binary name="omap4_gpio_drv" />
+		<resource name="RAM" quantum="1M" />
+		<provides><service name="Gpio"/></provides>
+		<config>
+		</config>
+		<route>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+	<start name="nitpicker_root">
+		<binary name="nitpicker" />
+		<resource name="RAM" quantum="40M"/>
+		<provides><service name="Nitpicker"/></provides>
+		<route>
+			<service name="Input">       <child name="usb_drv"/> </service>
+			<service name="Framebuffer"> <child name="fb_drv"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+	<start name="main_fb">
+		<binary name="nit_fb"/>
+		<resource name="RAM" quantum="10M"/>
+		<provides>
+			<service name="Framebuffer"/>
+			<service name="Input"/>
+		</provides>
+		<config xpos="800" ypos="0" width="1120" height="680"/>
+		<route>
+			<service name="Nitpicker"> <child name="nitpicker_root"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+	<start name="log_fb">
+		<binary name="nit_fb"/>
+		<resource name="RAM" quantum="4M"/>
+		<provides>
+			<service name="Framebuffer"/>
+			<service name="Input"/>
+		</provides>
+		<config xpos="0" ypos="600" width="800" height="680"/>
+		<route>
+			<service name="Nitpicker"> <child name="nitpicker_root"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+	
+	<start name="linux_fb.1">
+		<binary name="nit_fb"/>
+		<resource name="RAM" quantum="4M"/>
+		<provides>
+			<service name="Framebuffer"/>
+			<service name="Input"/>
+		</provides>
+		<config xpos="0" ypos="0" width="800" height="600"/>
+		<route>
+			<service name="Nitpicker"> <child name="nitpicker_root"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+	
+	<start name="linux_fb.2">
+		<binary name="nit_fb"/>
+		<resource name="RAM" quantum="4M"/>
+		<provides>
+			<service name="Framebuffer"/>
+			<service name="Input"/>
+		</provides>
+		<config xpos="800" ypos="680" width="1120" height="600"/>
+		<route>
+			<service name="Nitpicker"> <child name="nitpicker_root"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+
+	<start name="log_term">
+		<binary name="terminal"/>
+		<resource name="RAM" quantum="1M"/>
+		<provides><service name="Terminal"/></provides>
+		<route>
+			<service name="Input">       <child name="log_fb"/> </service>
+			<service name="Framebuffer"> <child name="log_fb"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+	<start name="main_log">
+		<binary name="terminal_log" />
+		<resource name="RAM" quantum="1M"/>
+		<provides><service name="LOG"/></provides>
+		<route>
+			<service name="Terminal"> <child name="log_term"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+	<start name="nitpicker_launchpad">
+		<binary name="nitpicker" />
+		<resource name="RAM" quantum="8M"/>
+		<provides><service name="Nitpicker"/></provides>
+		<route>
+			<service name="Input">       <child name="main_fb"/> </service>
+			<service name="Framebuffer"> <child name="main_fb"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+	
+	<start name="launchpad">
+		<resource name="RAM" quantum="50M"/>
+		<config args="ram_quota=3000000" />
+		<route>
+			<service name="Nitpicker"> <child name="nitpicker_launchpad"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+	
+	<start name="sd_card">
+		<binary name="sd_card_drv" />
+		<resource name="RAM" quantum="4M"/>
+		<provides><service name="Block"/></provides>
+		<route>
+			<service name="LOG"> <child name="main_log"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+	
+	<start name="vmlinux.1">
+		<binary name="l4linux"/>
+		<resource name="RAM" quantum="80M"/>
+		<config args="mem=70M root=/dev/sda2 init=/init">
+			<block label="sda" />
+		</config>
+		<route>
+			<service name="Input">       <child name="linux_fb.1"/> </service>
+			<service name="Framebuffer"> <child name="linux_fb.1"/> </service>
+			<service name="Block">       <child name="sd_card"/> </service>
+			<service name="Nic">         <child name="nic_bridge"/> </service>
+			<service name="LOG"> <child name="main_log"/> </service>
+			<any-service> <any-child/> <parent/> </any-service>
+		</route>
+	</start>
+	
+	<start name="vmlinux.2">
+		<binary name="l4linux"/>
+		<resource name="RAM" quantum="120M"/>
+		<config args="mem=80M console=tty0 console=ttyS0 l4x_rd=initrd.gz">
+		</config>
+		<route>
+			<service name="Input">       <child name="linux_fb.2"/> </service>
+			<service name="Framebuffer"> <child name="linux_fb.2"/> </service>
+			<service name="Nic">         <child name="nic_bridge"/> </service>
+			<service name="LOG"> <child name="main_log"/> </service>
+			<any-service> <any-child/> <parent/> </any-service>
+		</route>
+	</start>
+</config>}
+
+install_config $config
+
+#
+# Boot modules
+#
+
+# generic modules
+set boot_modules {
+	core init
+	timer
+	nic_bridge
+	nitpicker
+	nit_fb
+	terminal
+	terminal_log
+	liquid_fb
+	launchpad
+	scout
+	testnit
+	nitlog
+	omap4_fb_drv
+	usb_drv
+	omap4_gpio_drv
+	sd_card_drv
+	l4linux
+	initrd.gz
+}
+
+set uri "https://github.com/downloads/skalk/genode/busybox-initrd-arm-20120710.gz"
+if {![file exists bin/initrd.gz]} {
+	puts "Download initramfs ..."
+	exec >& /dev/null wget -c -O bin/initrd.gz $uri
+}
+
+build_boot_image  [join $boot_modules " "]
