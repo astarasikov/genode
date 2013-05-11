@@ -43,8 +43,8 @@ namespace Nitpicker {
 				char argbuf[ARGBUF_SIZE];
 				argbuf[0] = 0;
 
-				/* by default, donate as much as needed for a 1024x768 RGB565 screen */
-				Genode::size_t ram_quota = 1600*1024;
+				/* by default, donate as much as needed for a Full HD RGB565 screen */
+				Genode::size_t ram_quota = 1920*1280*2;
 
 				/*
 				 * NOTE: When specifying an INVALID mode as argument, we could
